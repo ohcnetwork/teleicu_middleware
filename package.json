@@ -1,5 +1,29 @@
 {
   "dependencies": {
+    "express": "^4.17.1",
     "onvif": "^0.6.5"
-  }
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "name": "teleicu_middleware",
+  "description": "Middleware to help tunnel CCTV Streams and ONVIF APIs for TeleICU",
+  "version": "0.0.1",
+  "main": "server.js",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/coronasafe/teleicu_middleware.git"
+  },
+  "keywords": [
+    "teleicu",
+    "express",
+    "onvif"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/coronasafe/teleicu_middleware/issues"
+  },
+  "homepage": "https://github.com/coronasafe/teleicu_middleware#readme"
 }
