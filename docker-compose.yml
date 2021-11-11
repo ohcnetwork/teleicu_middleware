@@ -27,7 +27,7 @@ services:
 
   # roverr_rtsp_stream:
   roverr_rtsp_stream:
-    image: roverr/rtsp-stream:2
+    image: roverr/rtsp-stream:2-management
     container_name: roverr_rtsp_stream
     ports:
       - "8080:8080"
