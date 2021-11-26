@@ -1,7 +1,8 @@
 Cam = require("onvif").Cam;
 new Cam(
   {
-    hostname: "192.168.1.64",
+    useSecure: true,
+    hostname: "dev_camera.coronasafe.live",
     username: "onvif_user",
     password: "qwerty123",
     port: 443,

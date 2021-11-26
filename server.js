@@ -16,40 +16,39 @@ app.use(cors());
 let cameraInstances = [];
 
 const camParams = {
-  hostname: "testcamera0001.in.ngrok.io",
+  useSecure: true,
+  hostname: "dev_camera.coronasafe.live",
   username: process.env.USERNAME,
   password: process.env.PASSWORD,
-  port: 80,
+  port: 443,
 };
-
-new Cam(camParams, function (arg) {
-  cameraInstances = [
-    ...cameraInstances,
-    {
-      hostname: "testcamera0001.in.ngrok.io",
-      cameraInstance: this,
-      error: arg,
-    },
-  ];
-  console.log("Camera Object Created");
-});
 
 app.get("/", (req, res) => {
   console.log("Camera Params", camParams);
-  camera.gotoPreset(
-    {
-      preset: 1,
-    },
-    () => {
-      console.log("Callback");
-    }
-  );
+  new Cam(camParams, function (arg) {
+    cameraInstances = [
+      ...cameraInstances,
+      {
+        hostname: "testcamera0001.in.ngrok.io",
+        cameraInstance: this,
+        error: arg,
+      },
+    ];
+    this.gotoPreset(
+      {
+        preset: 2,
+      },
+      () => {
+        console.log("Callback");
+      }
+    );
+  });
   res.send("Hello World!");
 });
 
 app.get("/move", (req, res) => {
   const camParams = {
-    hostname: "testcamera0001.in.ngrok.io",
+    hostname: "192.168.1.64",
     username: process.env.USERNAME,
     password: process.env.PASSWORD,
     port: 80,
@@ -58,7 +57,7 @@ app.get("/move", (req, res) => {
   new Cam(camParams, function (err) {
     this.gotoPreset(
       {
-        preset: 2,
+        preset: 1,
       },
       () => {
         console.log("Callback");
