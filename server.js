@@ -1,5 +1,6 @@
 var http = require("http");
 const dotenv = require("dotenv");
+const { loginController, authUser } = require("./auth");
 
 Cam = require("onvif").Cam;
 
@@ -104,6 +105,12 @@ app.get("/absoluteMove", (req, res) => {
     });
   });
   res.send("Requested!");
+});
+
+// AUTH
+app.post("/login", loginController);
+app.get("/protected", authUser, (req, res) => {
+  res.send("PROTECTED CONTENT");
 });
 
 app.listen(port, () => {
