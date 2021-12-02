@@ -3,10 +3,11 @@
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
     "onvif": "^0.6.5"
   },
   "scripts": {
-    "start": "node server.js"
+    "start": "nodemon server.js"
   },
   "name": "teleicu_middleware",
   "description": "Middleware to help tunnel CCTV Streams and ONVIF APIs for TeleICU",
@@ -26,5 +27,8 @@
   "bugs": {
     "url": "https://github.com/coronasafe/teleicu_middleware/issues"
   },
-  "homepage": "https://github.com/coronasafe/teleicu_middleware#readme"
+  "homepage": "https://github.com/coronasafe/teleicu_middleware#readme",
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  }
 }
