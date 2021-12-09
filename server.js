@@ -14,6 +14,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 let cameraInstances = [];
 
 const camParams = {
@@ -49,10 +50,11 @@ app.get("/", (req, res) => {
 
 app.get("/move", (req, res) => {
   const camParams = {
-    hostname: "192.168.1.64",
-    username: process.env.USERNAME,
-    password: process.env.PASSWORD,
-    port: 80,
+    useSecure: true,
+    hostname: req.body.hostname,
+    username: req.body.username,
+    password: req.body.password,
+    port: req.body.port,
   };
   console.log("Camera Params", camParams);
   new Cam(camParams, function (err) {
