@@ -70,6 +70,62 @@ app.get("/move", (req, res) => {
   res.send("Hello World!");
 });
 
+app.get("/status", (req, res) => {
+  const camParams = {
+    useSecure: true,
+    hostname: req.body.hostname,
+    username: req.body.username,
+    password: req.body.password,
+    port: req.body.port,
+  };
+  new Cam(camParams, function (err) {
+    this.getStatus(
+      {
+        preset: 1,
+      },
+      (err, status) => {
+        err ? res.send(err) : res.send(status);
+      }
+    );
+  });
+});
+
+app.get("/absoluteMove", (req, res) => {
+  const camParams = {
+    useSecure: true,
+    hostname: req.body.hostname,
+    username: req.body.username,
+    password: req.body.password,
+    port: req.body.port,
+  };
+  new Cam(camParams, function (err) {
+    this.absoluteMove({
+      x: req.body.x,
+      y: req.body.y,
+      zoom: req.body.zoom,
+    });
+  });
+  res.send("Requested!");
+});
+
+app.get("/relativeMove", (req, res) => {
+  const camParams = {
+    useSecure: true,
+    hostname: req.body.hostname,
+    username: req.body.username,
+    password: req.body.password,
+    port: req.body.port,
+  };
+  new Cam(camParams, function (err) {
+    this.relativeMove({
+      x: req.body.x,
+      y: req.body.y,
+      zoom: req.body.zoom,
+    });
+  });
+  res.send("Requested!");
+});
+
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`);
 });
