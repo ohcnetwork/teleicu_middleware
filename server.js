@@ -17,40 +17,9 @@ app.use(express.urlencoded({ extended: true }));
 
 let cameraInstances = [];
 
-const camParams = {
-  useSecure: true,
-  hostname: "dev_camera.coronasafe.live",
-  username: process.env.USERNAME,
-  password: process.env.PASSWORD,
-  port: 443,
-};
-
-app.get("/", (req, res) => {
-  console.log("Camera Params", camParams);
-  new Cam(camParams, function (arg) {
-    cameraInstances = [
-      ...cameraInstances,
-      {
-        hostname: "testcamera0001.in.ngrok.io",
-        cameraInstance: this,
-        error: arg,
-      },
-    ];
-    this.gotoPreset(
-      {
-        preset: 2,
-      },
-      () => {
-        console.log("Callback");
-      }
-    );
-  });
-  res.send("Hello World!");
-});
-
-app.get("/move", (req, res) => {
+app.post("/gotoPreset", (req, res) => {
   const camParams = {
-    useSecure: true,
+    useSecure: req.body.port === 443,
     hostname: req.body.hostname,
     username: req.body.username,
     password: req.body.password,
@@ -60,7 +29,7 @@ app.get("/move", (req, res) => {
   new Cam(camParams, function (err) {
     this.gotoPreset(
       {
-        preset: 1,
+        preset: req.body.preset,
       },
       () => {
         console.log("Callback");
@@ -68,31 +37,53 @@ app.get("/move", (req, res) => {
     );
   });
   res.send("Hello World!");
+});
+
+app.get("/presets", (req, res) => {
+  const port = req.query.port;
+  const camParams = {
+    useSecure: port && port === 443 ? true : false,
+    hostname: req.query.hostname,
+    username: req.query.username,
+    password: req.query.password,
+    port: port,
+  };
+  console.log("Camera Params", camParams);
+  try {
+    new Cam(camParams, function (err) {
+      this.getPresets({}, (err, presets) => {
+        err ? res.send(err) : res.send(presets);
+      });
+    });
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 app.get("/status", (req, res) => {
+  const port = req.query.port;
   const camParams = {
-    useSecure: true,
-    hostname: req.body.hostname,
-    username: req.body.username,
-    password: req.body.password,
-    port: req.body.port,
+    useSecure: port && port === 443 ? true : false,
+    hostname: req.query.hostname,
+    username: req.query.username,
+    password: req.query.password,
+    port: port,
   };
-  new Cam(camParams, function (err) {
-    this.getStatus(
-      {
-        preset: 1,
-      },
-      (err, status) => {
+  console.log("Camera Params", camParams);
+  try {
+    new Cam(camParams, function (err) {
+      this.getStatus({}, (err, status) => {
         err ? res.send(err) : res.send(status);
-      }
-    );
-  });
+      });
+    });
+  } catch (error) {
+    console.log(error);
+  }
 });
 
-app.get("/absoluteMove", (req, res) => {
+app.post("/absoluteMove", (req, res) => {
   const camParams = {
-    useSecure: true,
+    useSecure: req.body.port && req.body.port === 443 ? true : false,
     hostname: req.body.hostname,
     username: req.body.username,
     password: req.body.password,
@@ -108,9 +99,9 @@ app.get("/absoluteMove", (req, res) => {
   res.send("Requested!");
 });
 
-app.get("/relativeMove", (req, res) => {
+app.post("/relativeMove", (req, res) => {
   const camParams = {
-    useSecure: true,
+    useSecure: req.body.port && req.body.port === 443 ? true : false,
     hostname: req.body.hostname,
     username: req.body.username,
     password: req.body.password,
@@ -127,5 +118,5 @@ app.get("/relativeMove", (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
+  console.log(`Middleware App listening at http://localhost:${port}`);
 });
