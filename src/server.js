@@ -4,10 +4,12 @@ dotenv.config({ path: "./.env" });
 import express from "express";
 import helmet from "helmet";
 import cors from "cors";
+import swaggerUi from "swagger-ui-express";
 
 import { cameraRouter } from "./router/cameraRouter.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { notFoundController } from "./controller/NotFoundController.js";
+import { swaggerSpec } from "./swagger/swagger.js";
 
 const PORT = process.env.PORT;
 
@@ -18,8 +20,13 @@ app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Swagger definition
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// Camera routes
 app.use(cameraRouter);
 
+// Error handler
 app.use(errorHandler);
 app.all("*", notFoundController);
 
