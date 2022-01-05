@@ -1,0 +1,29 @@
+# Prerequisites:
+# - Docker
+# - Docker Compose
+
+# Steps:
+# - Create development container
+# $ docker-compose -f dev.docker-compose.yml up -d
+
+# - Log into the development container 
+# $ docker exec -it devenv bash
+
+# - Install packages and start the application
+# $ npm install
+# $ npm start
+
+version: '3.8'
+
+services: 
+
+  app:
+    image: node:16
+    container_name: devenv
+    volumes:
+        - ./:/app
+        - /app/node_modules
+    working_dir: /app
+    ports:
+        - 8090:8090
+    command: bash -c "tail -f /dev/null"
