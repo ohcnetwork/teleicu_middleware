@@ -1,12 +1,17 @@
-## create development container
-# docker-compose -f dev.docker-compose.yml up -d
+# Prerequisites:
+# - Docker
+# - Docker Compose
 
-## log into the dev container 
-# docker exec -it devenv bash
+# Steps:
+# - Create development container
+# $ docker-compose -f dev.docker-compose.yml up -d
 
-## Install packages and Start the application
-# npm install
-# npm start
+# - Log into the development container 
+# $ docker exec -it devenv bash
+
+# - Install packages and start the application
+# $ npm install
+# $ npm start
 
 version: '3.8'
 
