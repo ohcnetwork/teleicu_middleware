@@ -48,15 +48,6 @@ export class CameraController {
    *     responses:
    *       "200":
    *         description: Return success message
-   *         schema:
-   *           type: object
-   *           properties:
-   *             message:
-   *               type: string
-   *               default: 'Camera preset is set to 1.'
-   *             status:
-   *               type: string
-   *               default: 'success'
    */
   static gotoPreset = catchAsync(async (req, res) => {
     const camParams = this._getCamParams(req.body);
@@ -107,6 +98,38 @@ export class CameraController {
     res.send(presets);
   });
 
+  /**
+   * @swagger
+   * /status:
+   *   get:
+   *     summary: "Get camera status "
+   *     description: ""
+   *     tags:
+   *       - status
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               hostname:
+   *                 type: string
+   *                 required: true
+   *               username:
+   *                 type: string
+   *                 required: true
+   *               password:
+   *                 type: string
+   *                 required: true
+   *               port:
+   *                 type: number
+   *                 required: true
+   *
+   *     responses:
+   *       "200":
+   *         description: Return camera status
+   */
+
   static getStatus = catchAsync(async (req, res) => {
     const camParams = this._getCamParams(req.body);
     const status = await CameraUtils.getStatus({ camParams });
@@ -121,7 +144,7 @@ export class CameraController {
    *     summary: "Move camera to absolute position"
    *     description: ""
    *     tags:
-   *       - preset
+   *       - move
    *     requestBody:
    *       content:
    *         application/json:
@@ -166,6 +189,47 @@ export class CameraController {
       message: `Camera position updated!`,
     });
   });
+
+  /**
+   * @swagger
+   * /relativeMove:
+   *   post:
+   *     summary: "Move camera to relative position"
+   *     description: ""
+   *     tags:
+   *       - move
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               hostname:
+   *                 type: string
+   *                 required: true
+   *               username:
+   *                 type: string
+   *                 required: true
+   *               password:
+   *                 type: string
+   *                 required: true
+   *               port:
+   *                 type: number
+   *                 required: true
+   *               x:
+   *                 type: number
+   *                 required: true
+   *               y:
+   *                 type: number
+   *                 required: true
+   *               zoom:
+   *                 type: number
+   *                 required: true
+   *
+   *     responses:
+   *       "200":
+   *         description: Return all available presets
+   */
 
   static relativeMove = catchAsync(async (req, res) => {
     const camParams = this._getCamParams(req.body);
