@@ -35,7 +35,7 @@ export class CameraController {
   });
 
   static getStatus = catchAsync(async (req, res) => {
-    const camParams = this._getCamParams(req.body);
+    const camParams = this._getCamParams(req.query);
     const status = await CameraUtils.getStatus({ camParams });
 
     res.send(status);
@@ -62,6 +62,12 @@ export class CameraController {
     res.send({
       status: "success",
       message: `Camera position updated!`,
+    });
+  });
+
+  static getTime = catchAsync(async (req, res) => {
+    res.send({
+      time: new Date().toISOString(),
     });
   });
 }

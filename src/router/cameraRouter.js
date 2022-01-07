@@ -19,7 +19,7 @@ router.get(
 
 router.get(
   "/status",
-  validate(baseCameraParamsValidators),
+  validate(baseGetCameraParamsValidators),
   CameraController.getStatus
 );
 
@@ -40,5 +40,9 @@ router.post(
   validate(camMoveValidator),
   CameraController.relativeMove
 );
+
+// BPL Integration
+
+router.get("/getTime", CameraController.getTime);
 
 export { router as cameraRouter };
