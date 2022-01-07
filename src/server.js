@@ -11,7 +11,7 @@ import { errorHandler } from "./middleware/errorHandler.js";
 import { notFoundController } from "./controller/NotFoundController.js";
 import { swaggerSpec } from "./swagger/swagger.js";
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 8090;
 
 const app = express();
 
