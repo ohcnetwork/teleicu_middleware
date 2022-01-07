@@ -1,4 +1,4 @@
-import { body } from "express-validator";
+import { body, query } from "express-validator";
 
 export const baseCameraParamsValidators = [
   body("hostname")
@@ -17,6 +17,29 @@ export const baseCameraParamsValidators = [
     .isString()
     .withMessage("password must be string."),
   body("port")
+    .exists({ checkFalsy: true })
+    .withMessage("port is required.")
+    .isInt()
+    .withMessage("port must be integer."),
+];
+
+export const baseGetCameraParamsValidators = [
+  query("hostname")
+    .exists({ checkFalsy: true })
+    .withMessage("hostname is required.")
+    .isString()
+    .withMessage("hostname must be string."),
+  query("username")
+    .exists({ checkFalsy: true })
+    .withMessage("username is required.")
+    .isString()
+    .withMessage("username must be string."),
+  query("password")
+    .exists({ checkFalsy: true })
+    .withMessage("password is required.")
+    .isString()
+    .withMessage("password must be string."),
+  query("port")
     .exists({ checkFalsy: true })
     .withMessage("port is required.")
     .isInt()

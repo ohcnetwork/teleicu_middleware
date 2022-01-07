@@ -1,18 +1,19 @@
 import express from "express";
 
-import { CameraController } from "../controller/cameraController.js";
+import { CameraController } from "../controller/CameraController.js";
 import { validate } from "../middleware/validate.js";
 import {
   baseCameraParamsValidators,
+  baseGetCameraParamsValidators,
   camMoveValidator,
   gotoPresetValidator,
-} from "../Validators/CameraValidators.js";
+} from "../Validators/cameraValidators.js";
 
 const router = express.Router();
 
 router.get(
   "/presets",
-  validate(baseCameraParamsValidators),
+  validate(baseGetCameraParamsValidators),
   CameraController.getPresets
 );
 

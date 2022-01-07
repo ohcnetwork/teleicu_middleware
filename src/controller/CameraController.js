@@ -29,7 +29,7 @@ export class CameraController {
   });
 
   static getPresets = catchAsync(async (req, res) => {
-    const camParams = this._getCamParams(req.body);
+    const camParams = this._getCamParams(req.query);
     const presets = await CameraUtils.getPreset({ camParams });
     res.send(presets);
   });
