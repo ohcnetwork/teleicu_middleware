@@ -6,10 +6,11 @@ import helmet from "helmet";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 
-import { cameraRouter } from "./router/cameraRouter.js";
-import { errorHandler } from "./middleware/errorHandler.js";
-import { notFoundController } from "./controller/NotFoundController.js";
 import { swaggerSpec } from "./swagger/swagger.js";
+import { errorHandler } from "./middleware/errorHandler.js";
+import { cameraRouter } from "./router/cameraRouter.js";
+import { observationRouter } from "./router/observationRouter.js";
+import { notFoundController } from "./controller/NotFoundController.js";
 
 const PORT = process.env.PORT || 8090;
 
@@ -25,6 +26,8 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Camera routes
 app.use(cameraRouter);
+// observation routes
+app.use(observationRouter);
 
 // Error handler
 app.use(errorHandler);
