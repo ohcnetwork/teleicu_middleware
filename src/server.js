@@ -13,10 +13,23 @@ const PORT = process.env.PORT;
 
 const app = express();
 
+const requestLogger = (req, res, next) => {
+  console.log(
+    `${new Date().toISOString()}: ${req.ip} ${req.method} ${req.url}`
+  );
+  // Log Headers
+  console.log(req.headers);
+  // Log Body
+  console.log(req.body);
+  console.log("\n");
+  next();
+};
+
 app.use(cors());
 app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(requestLogger);
 
 app.use(cameraRouter);
 
