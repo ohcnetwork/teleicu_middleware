@@ -6,11 +6,11 @@ export class CameraController {
     const { hostname, username, password, port } = body;
 
     const camParams = {
-      useSecure: port === 443,
+      useSecure: Number(port) === 443,
       hostname,
       username,
       password,
-      port,
+      port: Number(port),
     };
 
     return camParams;
@@ -94,6 +94,7 @@ export class CameraController {
 
   static getPresets = catchAsync(async (req, res) => {
     const camParams = this._getCamParams(req.query);
+    console.log(camParams);
     const presets = await CameraUtils.getPreset({ camParams });
     res.send(presets);
   });
