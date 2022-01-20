@@ -6,9 +6,11 @@ import { observationsValidators } from "../Validators/observationValidators.js";
 const router = express();
 
 router.post(
-  "/hl7",
+  "/update_observations",
   validate(observationsValidators),
-  ObservationController.createObservation
+  ObservationController.updateObservations
 );
+
+router.get("/get_time", ObservationController.getTime);
 
 export { router as observationRouter };

@@ -8,6 +8,8 @@ const Observations = {
   BODY_TEMP_1: "body-temperature1",
   BODY_TEMP_2: "body-temperature2",
   BLOOD_PRESSURE: "blood-pressure",
+  IBP1: "IBP1",
+  IBP2: "IBP2",
 };
 
 const baseObservationValidators = [
@@ -16,7 +18,10 @@ const baseObservationValidators = [
     .withMessage("observation_id is required.")
     .isString()
     .withMessage("observation_id must be string.")
-    .isIn(Object.values(Observations)),
+    .isIn(Object.values(Observations))
+    .withMessage(
+      "observation_id must be one of: " + Object.values(Observations)
+    ),
   body("*.device_id")
     .exists({ checkFalsy: true })
     .withMessage("device_id is required.")

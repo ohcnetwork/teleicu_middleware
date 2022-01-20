@@ -242,10 +242,4 @@ export class CameraController {
       message: `Camera position updated!`,
     });
   });
-
-  static getTime = catchAsync(async (req, res) => {
-    res.send({
-      time: new Date().toISOString(),
-    });
-  });
 }

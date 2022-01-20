@@ -15,16 +15,16 @@ const sendProdError = (err, res) => {
 };
 
 export const errorHandler = (err, req, res, next) => {
-  err.statusCode = err.statusCode || 500;
-  err.status = err.status || "error";
+  console.log("Error Handler");
+  // err.statusCode = err.statusCode || 500;
+  // err.status = err.status || "error";
 
   const env = process.env.NODE_ENV;
 
   if (env === "development") {
     console.error(err);
-    ``;
-    sendDevError(err, res);
+    // sendDevError(err, res);
   } else {
-    sendProdError(err, res);
+    // sendProdError(err, res);
   }
 };
