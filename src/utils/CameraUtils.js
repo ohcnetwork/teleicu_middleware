@@ -64,4 +64,17 @@ export class CameraUtils {
         }
       });
     });
+
+  static setPreset = async ({ camParams, presetName }) =>
+    new Promise((resolve, reject) => {
+      new Cam(camParams, function (err) {
+        if (err) return reject(err);
+        try {
+          const result = this.setPreset({ presetName }, () => {});
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        }
+      });
+    });
 }

@@ -55,6 +55,17 @@ export const gotoPresetValidator = [
     .withMessage("preset must be integer."),
 ];
 
+export const setPresetValidators = [
+  ...baseCameraParamsValidators,
+  body("presetName")
+    .exists({ checkFalsy: true })
+    .withMessage("presetName is required.")
+    .isString()
+    .withMessage("presetName must be string.")
+    .isLength({ max: 20, min: 1 })
+    .withMessage("presetName must be 1 to 20 character long."),
+];
+
 export const camMoveValidator = [
   ...baseCameraParamsValidators,
   body("x")
