@@ -249,6 +249,40 @@ export class CameraController {
     });
   });
 
+  /**
+   * @swagger
+   * /preset:
+   *   post:
+   *     summary: "Create new camera preset"
+   *     description: ""
+   *     tags:
+   *       - preset
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               hostname:
+   *                 type: string
+   *                 required: true
+   *               username:
+   *                 type: string
+   *                 required: true
+   *               password:
+   *                 type: string
+   *                 required: true
+   *               port:
+   *                 type: number
+   *                 required: true
+   *               presetName:
+   *                 type: string
+   *                 required: true
+   *
+   *     responses:
+   *       "200":
+   *         description: Return 200 if new camera preset is created
+   */
   static setPreset = catchAsync(async (req, res) => {
     const camParams = this._getCamParams(req.query);
     const { presetName } = req.body;
@@ -257,7 +291,7 @@ export class CameraController {
 
     res.send({
       status: "success",
-      message: `Camera preset added.`,
+      message: "Camera preset added.",
     });
   });
 }
