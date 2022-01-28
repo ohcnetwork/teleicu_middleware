@@ -43,4 +43,6 @@ router.post(
 
 // BPL Integration
 
+router.get("/get_time", CameraController.getTime);
+
 export { router as cameraRouter };

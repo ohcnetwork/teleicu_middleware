@@ -27,6 +27,7 @@ const requestLogger = (req, res, next) => {
   console.log("\n");
   next();
 };
+
 function logResponseBody(req, res, next) {
   var oldWrite = res.write,
     oldEnd = res.end;
