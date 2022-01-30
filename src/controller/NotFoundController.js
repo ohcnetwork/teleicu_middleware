@@ -1,3 +1,3 @@
 export const notFoundController = (req, res, next) => {
-  res.render("pages/notFound");
+  res.status(404).render("pages/notFound");
 };
