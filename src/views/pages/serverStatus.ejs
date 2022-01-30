@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <%- include('../partials/head.ejs', { title: 'Teleicu Middleware | Home'})
+    %>
+  </head>
+  <body class="max-w-screen-lg mx-auto">
+    <%- include("../partials/header") %>
+    <main class="py-8">
+      <%- include("../partials/pageTitle",{title:"Status"}) %>
+
+      <h1 class="flex items-center text-xl">
+        Server Status :&nbsp;
+
+        <span
+          id="server-status-dot"
+          class="inline-block w-4 h-4 bg-red-500 rounded-full animate-ping"
+        ></span
+        >&nbsp;
+        <span id="server-status-text"> Disconnected</span>
+      </h1>
+
+      <div id="resource">
+        <div class="grid grid-cols-2 py-16">
+          <div
+            class="transition hover:text-white hover:bg-primary-500 flex items-center justify-center flex-col p-8"
+          >
+            <h1 class="text-4xl mb-4" id="cpu-usage">0%</h1>
+            <p class="text-2xl">CPU</p>
+          </div>
+          <div
+            class="transition hover:text-white hover:bg-primary-500 flex items-center justify-center flex-col px-8 py-16"
+          >
+            <h1 class="text-4xl mb-4" id="memory-usage">0%</h1>
+            <p class="text-2xl">Memory</p>
+          </div>
+          <div
+            class="transition hover:text-white hover:bg-primary-500 flex items-center justify-center flex-col px-8 py-16"
+          >
+            <h1 class="text-4xl mb-4" id="server-load">0%</h1>
+            <p class="text-2xl">Server Load</p>
+          </div>
+          <div
+            class="transition hover:text-white hover:bg-primary-500 flex items-center justify-center flex-col px-8 py-16"
+          >
+            <h1 class="text-4xl mb-4" id="uptime">0%</h1>
+            <p class="text-2xl">Uptime</p>
+          </div>
+        </div>
+      </div>
+      <div id="errors" class="my-16">
+        <a href="#error-log" class="block text-xl my-4 font-bold"
+          ># Error Logs</a
+        >
+        <table class="min-w-full">
+          <thead class="border-b bg-primary-500 text-white">
+            <tr>
+              <th scope="col" class="text-sm font-medium px-3 py-2 text-left">
+                Time
+              </th>
+              <th scope="col" class="text-sm font-medium px-3 py-2 text-left">
+                Method
+              </th>
+              <th scope="col" class="text-sm font-medium px-3 py-2 text-left">
+                Status
+              </th>
+              <th scope="col" class="text-sm font-medium px-3 py-2 text-left">
+                Url
+              </th>
+              <th scope="col" class="text-sm font-medium px-3 py-2 text-left">
+                Message
+              </th>
+            </tr>
+          </thead>
+          <tbody id="error-log-tbody">
+            <tr>
+              <td class="text-center py-16 text-2xl">No Logs</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="log" class="my-16">
+        <a href="#request-log" class="block text-xl my-4 font-bold"
+          ># Request Logs</a
+        >
+        <table class="w-full max-h-[500px]">
+          <thead
+            class="border-b bg-primary-500 text-white max-h-[600px] overflow-y-scroll"
+          >
+            <tr>
+              <th scope="col" class="text-sm font-medium px-3 py-2 text-left">
+                Time
+              </th>
+              <th scope="col" class="text-sm font-medium px-3 py-2 text-left">
+                Method
+              </th>
+              <th scope="col" class="text-sm font-medium px-3 py-2 text-left">
+                Status
+              </th>
+              <th scope="col" class="text-sm font-medium px-3 py-2 text-left">
+                URL
+              </th>
+              <th scope="col" class="text-sm font-medium px-3 py-2 text-left">
+                Res.time
+              </th>
+            </tr>
+          </thead>
+
+          <tbody id="request-log-tbody">
+            <tr>
+              <td class="text-center py-16 text-2xl">No Logs</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+    <%- include("../partials/footer") %>
+    <script src="/assets/js/ws.js"></script>
+  </body>
+</html>
