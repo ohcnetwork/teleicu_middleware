@@ -4,6 +4,7 @@ import { CameraController } from "../controller/CameraController.js";
 import { validate } from "../middleware/validate.js";
 import {
   baseCameraParamsValidators,
+  setPresetValidators,
   baseGetCameraParamsValidators,
   camMoveValidator,
   gotoPresetValidator,
@@ -15,6 +16,12 @@ router.get(
   "/presets",
   validate(baseGetCameraParamsValidators),
   CameraController.getPresets
+);
+
+router.post(
+  "/presets",
+  validate(setPresetValidators),
+  CameraController.setPreset
 );
 
 router.get(
