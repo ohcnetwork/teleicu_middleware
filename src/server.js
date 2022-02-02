@@ -6,10 +6,11 @@ import helmet from "helmet";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 
-import { cameraRouter } from "./router/cameraRouter.js";
-import { errorHandler } from "./middleware/errorHandler.js";
-import { notFoundController } from "./controller/NotFoundController.js";
 import { swaggerSpec } from "./swagger/swagger.js";
+import { errorHandler } from "./middleware/errorHandler.js";
+import { cameraRouter } from "./router/cameraRouter.js";
+import { observationRouter } from "./router/observationRouter.js";
+import { notFoundController } from "./controller/NotFoundController.js";
 
 const PORT = process.env.PORT || 8090;
 
@@ -27,6 +28,32 @@ const requestLogger = (req, res, next) => {
   next();
 };
 
+function logResponseBody(req, res, next) {
+  var oldWrite = res.write,
+    oldEnd = res.end;
+
+  var chunks = [];
+
+  res.write = function (chunk) {
+    chunks.push(chunk);
+
+    return oldWrite.apply(res, arguments);
+  };
+
+  res.end = function (chunk) {
+    if (chunk) chunks.push(chunk);
+
+    var body = Buffer.concat(chunks).toString("utf8");
+    console.log(req.path, body);
+
+    oldEnd.apply(res, arguments);
+  };
+
+  next();
+}
+
+// app.use(logResponseBody);
+
 app.use(cors());
 app.use(helmet());
 app.use(express.json());
@@ -38,6 +65,8 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Camera routes
 app.use(cameraRouter);
+// observation routes
+app.use(observationRouter);
 
 // Error handler
 app.use(errorHandler);
