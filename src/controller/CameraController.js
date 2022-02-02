@@ -60,7 +60,6 @@ export class CameraController {
       message: `Camera preset is set to ${preset}.`,
     });
   });
-
   /**
    * @swagger
    * /presets:
@@ -69,29 +68,31 @@ export class CameraController {
    *     description: ""
    *     tags:
    *       - preset
-   *     requestBody:
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             properties:
-   *               hostname:
-   *                 type: string
-   *                 required: true
-   *               username:
-   *                 type: string
-   *                 required: true
-   *               password:
-   *                 type: string
-   *                 required: true
-   *               port:
-   *                 type: integer
-   *                 required: true
+   *     parameters:
+   *       - name: hostname
+   *         in: query
+   *         required: true
+   *         schema:
+   *           type: string
+   *       - name: username
+   *         in: query
+   *         required: true
+   *         schema:
+   *           type: string
+   *       - name: password
+   *         in: query
+   *         required: true
+   *         schema:
+   *           type: string
+   *       - name: port
+   *         in: query
+   *         required: true
+   *         schema:
+   *           type: string
    *     responses:
    *       "200":
    *         description: Return all available presets
    */
-
   static getPresets = catchAsync(async (req, res) => {
     const camParams = this._getCamParams(req.query);
     const presets = await CameraUtils.getPreset({ camParams });
@@ -106,25 +107,27 @@ export class CameraController {
    *     description: ""
    *     tags:
    *       - status
-   *     requestBody:
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             properties:
-   *               hostname:
-   *                 type: string
-   *                 required: true
-   *               username:
-   *                 type: string
-   *                 required: true
-   *               password:
-   *                 type: string
-   *                 required: true
-   *               port:
-   *                 type: number
-   *                 required: true
-   *
+   *     parameters:
+   *       - name: hostname
+   *         in: query
+   *         required: true
+   *         schema:
+   *           type: string
+   *       - name: username
+   *         in: query
+   *         required: true
+   *         schema:
+   *           type: string
+   *       - name: password
+   *         in: query
+   *         required: true
+   *         schema:
+   *           type: string
+   *       - name: port
+   *         in: query
+   *         required: true
+   *         schema:
+   *           type: string
    *     responses:
    *       "200":
    *         description: Return camera status
@@ -242,6 +245,19 @@ export class CameraController {
       message: `Camera position updated!`,
     });
   });
+
+  /**
+   * @swagger
+   * /get_time:
+   *   get:
+   *     summary: "Get current time"
+   *     description: ""
+   *     tags:
+   *       - BPL
+   *     responses:
+   *       "200":
+   *         description: Return current time
+   */
   static getTime = catchAsync(async (req, res) => {
     res.send({
       time: new Date().toISOString(),
