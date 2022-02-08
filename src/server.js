@@ -8,10 +8,15 @@ import express from "express";
 import swaggerUi from "swagger-ui-express";
 import enableWs from "express-ws";
 
+
 import { cameraRouter } from "./router/cameraRouter.js";
 import { configRouter } from "./router/configRouter.js";
+
 import { errorHandler } from "./middleware/errorHandler.js";
+import { cameraRouter } from "./router/cameraRouter.js";
+import { observationRouter } from "./router/observationRouter.js";
 import { notFoundController } from "./controller/NotFoundController.js";
+
 import { swaggerSpec } from "./swagger/swagger.js";
 import { morganWithWs } from "./middleware/morganWithWs.js";
 import { serverStatusRouter } from "./router/serverStatus.Router.js";
@@ -23,12 +28,15 @@ const PORT = process.env.PORT || 8090;
 const app = express();
 const ws = enableWs(app);
 
+
 app.set("view engine", "ejs");
 app.set("views", path.join(path.resolve(), "src/views"));
 
 app.use(express.static(path.join(path.resolve(), "src/public")));
 app.use(cors({ origin: [] }));
 app.use(helmet({ contentSecurityPolicy: false }));
+
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -41,6 +49,7 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Camera routes
 app.use(cameraRouter);
+app.use(observationRouter);
 app.use(configRouter);
 app.use(serverStatusRouter);
 

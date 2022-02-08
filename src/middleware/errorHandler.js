@@ -20,6 +20,7 @@ export const errorHandler = (ws) => (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "error";
 
+
   const env = process.env.NODE_ENV;
 
   const data = {
@@ -38,6 +39,6 @@ export const errorHandler = (ws) => (err, req, res, next) => {
     console.error(err);
     sendDevError(err, res);
   } else {
-    sendProdError(err, res);
+    // sendProdError(err, res);
   }
 };
