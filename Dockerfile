@@ -9,5 +9,5 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 3010
+EXPOSE 8090
 CMD [ "node", "src/server.js" ]
