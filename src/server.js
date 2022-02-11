@@ -5,6 +5,8 @@ import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
+import * as Sentry from "@sentry/node";
+import * as Tracing from "@sentry/tracing";
 
 import { swaggerSpec } from "./swagger/swagger.js";
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -52,7 +54,19 @@ function logResponseBody(req, res, next) {
   next();
 }
 
-// app.use(logResponseBody);
+// Sentry
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  integrations: [
+    new Sentry.Integrations.Http({ tracing: true }),
+    new Tracing.Integrations.Express({ app }),
+  ],
+  environment: process.env.SENTRY_ENV,
+  tracesSampleRate: 1.0,
+});
+
+app.use(Sentry.Handlers.requestHandler());
+app.use(Sentry.Handlers.tracingHandler());
 
 app.use(cors());
 app.use(helmet());
@@ -69,8 +83,9 @@ app.use(cameraRouter);
 app.use(observationRouter);
 
 // Error handler
+app.use(Sentry.Handlers.errorHandler());
 app.use(errorHandler);
-app.all("*", notFoundController);
+app.use("*", notFoundController);
 
 app.listen(PORT, () =>
   console.log(`[SERVER] : Middleware App listening at http://localhost:${PORT}`)
