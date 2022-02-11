@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "@sentry/node": "^6.17.7",
+    "@sentry/tracing": "^6.17.7",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
