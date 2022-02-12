@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <%- include('../partials/head.ejs', { title: 'Teleicu Middleware | Home'})
+    %>
+  </head>
+  <body class="max-w-screen-md mx-auto">
+    <%- include("../partials/header") %>
+    <main class="py-8">
+      <%- include("../partials/pageTitle",{title:"Config"}) %>
+      <form action="/config" method="post" class="my-6">
+        <div class="my-3">
+          <label for="hostname"> Hostname </label>
+          <input
+            id="hostname"
+            type="text"
+            name="hostname"
+            required
+            minlength="3"
+            maxlength="100"
+            value="<%- hostname %>"
+            placeholder="dev_example.hospital.com"
+            class="text-base px-4 py-2 border-2 transition border-gray-700 hover:bg-slate-100 focus:border-primary-400 outline-none w-full"
+          />
+        </div>
+        <button
+          type="submit"
+          class="btn transition bg-primary-500 py-4 px-8 text-white hover:bg-white hover:text-primary-500 border-2 border-primary-500"
+        >
+          Update
+        </button>
+      </form>
+    </main>
+    <%- include("../partials/footer") %>
+  </body>
+</html>
