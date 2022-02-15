@@ -1,0 +1,3 @@
+.btn {
+  @apply text-base px-4 py-2 border-2;
+}
