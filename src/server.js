@@ -10,13 +10,11 @@ import swaggerUi from "swagger-ui-express";
 import * as Sentry from "@sentry/node";
 import * as Tracing from "@sentry/tracing";
 
-
 import { cameraRouter } from "./router/cameraRouter.js";
 import { configRouter } from "./router/configRouter.js";
 
 
 import { errorHandler } from "./middleware/errorHandler.js";
-import { cameraRouter } from "./router/cameraRouter.js";
 import { observationRouter } from "./router/observationRouter.js";
 import { notFoundController } from "./controller/NotFoundController.js";
 
@@ -30,12 +28,12 @@ const PORT = process.env.PORT || 8090;
 const app = express();
 const ws = enableWs(app);
 
-
 app.set("view engine", "ejs");
 app.set("views", path.join(path.resolve(), "src/views"));
 
 app.use(express.static(path.join(path.resolve(), "src/public")));
-app.use(cors({ origin: [] }));
+app.use(cors());
+app.options("*", cors());
 app.use(helmet({ contentSecurityPolicy: false }));
 
 // Sentry
@@ -51,7 +49,6 @@ Sentry.init({
 
 app.use(Sentry.Handlers.requestHandler());
 app.use(Sentry.Handlers.tracingHandler());
-
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
