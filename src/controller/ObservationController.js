@@ -1,5 +1,7 @@
 var staticObservations = {};
 
+const DEFAULT_LISTING_LIMIT = 10;
+
 const addObservation = (observation) => {
   staticObservations = {
     ...staticObservations,
@@ -16,6 +18,32 @@ const addObservation = (observation) => {
 
 export class ObservationController {
   // static variable to hold the latest observations
+
+  static getObservations(req, res) {
+    const limit = req.query?.limit || DEFAULT_LISTING_LIMIT;
+    const ip = req.query?.ip;
+
+    if (!ip) {
+      return res.status(400).send({
+        message: "No IP Address provided",
+      });
+    }
+
+    const filtered = Object.values(staticObservations)
+      .reduce((acc, curr) => {
+        const latestValue = JSON.parse(curr.latestValue);
+        if (latestValue["device_id"] === ip) return [...acc, curr];
+        return acc;
+      }, [])
+      // Sort the observation by last updated time.
+      .sort(
+        (a, b) => new Date(a.lastObservationAt) - new Date(b.lastObservationAt)
+      )
+      // Limit the results
+      .slice(0, limit);
+
+    return res.json(filtered);
+  }
 
   static updateObservations(req, res) {
     // database logic
