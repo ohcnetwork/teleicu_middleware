@@ -5,6 +5,8 @@ import { observationsValidators } from "../Validators/observationValidators.js";
 
 const router = express();
 
+router.get("/get_observations", ObservationController.getObservations);
+
 router.post(
   "/update_observations",
   validate(observationsValidators),
