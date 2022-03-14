@@ -8,6 +8,7 @@
     "express-ws": "^5.0.2",
     "helmet": "^4.6.0",
     "morgan": "^1.10.0",
+    "node-jose": "^2.1.0",
     "onvif": "^0.6.5",
     "pidusage": "^3.0.0",
     "swagger-jsdoc": "^6.1.0",

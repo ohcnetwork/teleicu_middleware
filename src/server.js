@@ -21,6 +21,9 @@ import { serverStatusRouter } from "./router/serverStatus.Router.js";
 
 import { ServerStatusController } from "./controller/ServerStatusController.js";
 
+import {openidConfigController} from "./controller/OpenidConfig.js"
+
+
 const PORT = process.env.PORT || 8090;
 
 const app = express();
@@ -49,6 +52,8 @@ app.use(cameraRouter);
 app.use(observationRouter);
 app.use(configRouter);
 app.use(serverStatusRouter);
+
+app.get("/.well-known/openid-configuration" , openidConfigController)
 
 app.ws("/logger", (ws, req) => {});
 

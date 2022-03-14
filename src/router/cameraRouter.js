@@ -1,5 +1,6 @@
 import express from "express";
 
+
 import { CameraController } from "../controller/CameraController.js";
 import { validate } from "../middleware/validate.js";
 import {
