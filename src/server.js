@@ -17,7 +17,8 @@ import { notFoundController } from "./controller/NotFoundController.js";
 
 import { swaggerSpec } from "./swagger/swagger.js";
 import { morganWithWs } from "./middleware/morganWithWs.js";
-import { serverStatusRouter } from "./router/serverStatus.Router.js";
+import { serverStatusRouter } from "./router/serverStatusRouter.js";
+import { healthRouter } from "./router/healthRouter.js"
 
 import { ServerStatusController } from "./controller/ServerStatusController.js";
 
@@ -52,6 +53,7 @@ app.use(cameraRouter);
 app.use(observationRouter);
 app.use(configRouter);
 app.use(serverStatusRouter);
+app.use(healthRouter)
 
 app.get("/.well-known/openid-configuration" , openidConfigController)
 
