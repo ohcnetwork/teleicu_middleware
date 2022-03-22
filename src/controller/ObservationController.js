@@ -24,9 +24,7 @@ export class ObservationController {
     const ip = req.query?.ip;
 
     if (!ip) {
-      return res.status(400).send({
-        message: "No IP Address provided",
-      });
+      return res.json(staticObservations);
     }
 
     const filtered = Object.values(staticObservations)
