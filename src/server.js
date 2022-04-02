@@ -10,6 +10,7 @@ import enableWs from "express-ws";
 
 import { cameraRouter } from "./router/cameraRouter.js";
 import { configRouter } from "./router/configRouter.js";
+import { authRouter } from "./router/authRouter.js";
 
 import { errorHandler } from "./middleware/errorHandler.js";
 import { observationRouter } from "./router/observationRouter.js";
@@ -44,13 +45,16 @@ app.get("/", (req, res) => res.render("pages/index"));
 // Swagger definition
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+// Auth
+app.use(authRouter);
+
 // Camera routes
 app.use(cameraRouter);
 app.use(observationRouter);
 app.use(configRouter);
 app.use(serverStatusRouter);
 
-app.ws("/logger", (ws, req) => {});
+app.ws("/logger", (ws, req) => { });
 
 // Error handler
 app.use(errorHandler(ws));
