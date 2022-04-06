@@ -1,6 +1,7 @@
 import { check, body, checkSchema } from "express-validator";
 
 const Observations = {
+  ST: "ST",
   HEART_RATE: "heart-rate",
   PULSE_RATE: "pulse-rate",
   RESPIRATORY_RATE: "respiratory-rate",

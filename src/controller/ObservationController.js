@@ -1,4 +1,5 @@
 var staticObservations = {};
+var logData = {};
 
 const DEFAULT_LISTING_LIMIT = 10;
 
@@ -11,7 +12,7 @@ const addObservation = (observation) => {
         observation["date-time"],
       lastObservationAt: observation["date-time"],
       hits: (staticObservations[observation.observation_id]?.hits ?? 0) + 1,
-      latestValue: JSON.stringify(observation),
+      latestValue: observation,
     },
   };
 };
@@ -43,9 +44,14 @@ export class ObservationController {
     return res.json(filtered);
   }
 
+  static getLogData(req, res) {
+    return res.json(logData);
+  }
+
   static updateObservations(req, res) {
     // database logic
     console.log("updateObservations", req.body);
+    logData = req.body;
     const observations = req.body;
     // If req.body.observations is an array, then we need to loop through it and create a new observation for each one
     // If req.body.observations is a single object, then we need to create a new observation for it
