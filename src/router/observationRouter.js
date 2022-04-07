@@ -15,4 +15,10 @@ router.post(
 
 router.get("/get_time", ObservationController.getTime);
 
+// Debugging Endpoints
+
+router.get("/get_log_data", ObservationController.getLogData);
+
+router.get("/get_last_request_data", ObservationController.getLastRequestData);
+
 export { router as observationRouter };

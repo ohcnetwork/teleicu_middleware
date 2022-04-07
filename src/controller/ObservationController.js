@@ -1,20 +1,40 @@
 var staticObservations = {};
-var logData = {};
+var lastRequestData = {};
+var logData = [];
 
 const DEFAULT_LISTING_LIMIT = 10;
 
 const addObservation = (observation) => {
   staticObservations = {
     ...staticObservations,
-    [observation.observation_id]: {
-      firstObservationAt:
-        staticObservations[observation.observation_id]?.firstObservationAt ??
-        observation["date-time"],
-      lastObservationAt: observation["date-time"],
-      hits: (staticObservations[observation.observation_id]?.hits ?? 0) + 1,
-      latestValue: observation,
+    [observation.device_id]: {
+      ...staticObservations[observation.device_id],
+      [observation.observation_id]: {
+        firstObservationAt:
+          staticObservations[observation.observation_id]?.firstObservationAt ??
+          observation["date-time"],
+        lastObservationAt: observation["date-time"],
+        hits: (staticObservations[observation.observation_id]?.hits ?? 0) + 1,
+        latestValue: observation,
+      },
     },
   };
+};
+
+const addLogData = (newData) => {
+  logData = logData.filter((log) => {
+    if (log.dateTime - newDate() > 1000) {
+      return false;
+    }
+    return true;
+  });
+  logData = [
+    ...logData,
+    {
+      dateTime: new Date(),
+      data: newData,
+    },
+  ];
 };
 
 export class ObservationController {
@@ -48,10 +68,15 @@ export class ObservationController {
     return res.json(logData);
   }
 
+  static getLastRequestData(req, res) {
+    return res.json(lastRequestData);
+  }
+
   static updateObservations(req, res) {
     // database logic
+    lastRequestData = req.body;
     console.log("updateObservations", req.body);
-    logData = req.body;
+    addLogData(req.body);
     const observations = req.body;
     // If req.body.observations is an array, then we need to loop through it and create a new observation for each one
     // If req.body.observations is a single object, then we need to create a new observation for it
