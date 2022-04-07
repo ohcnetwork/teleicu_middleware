@@ -21,13 +21,11 @@ const addObservation = (observation) => {
   };
 };
 
+DEFAULT_LISTING_LIMIT = 20;
+
 const addLogData = (newData) => {
-  logData = logData.filter((log) => {
-    if (log.dateTime - new Date() > 1000) {
-      return false;
-    }
-    return true;
-  });
+  // Slice the log data to the last DEFAULT_LISTING_LIMIT entries
+  logData = logData.slice(logData.length - DEFAULT_LISTING_LIMIT);
   logData = [
     ...logData,
     {
