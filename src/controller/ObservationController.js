@@ -21,8 +21,6 @@ const addObservation = (observation) => {
   };
 };
 
-DEFAULT_LISTING_LIMIT = 20;
-
 const addLogData = (newData) => {
   // Slice the log data to the last DEFAULT_LISTING_LIMIT entries
   logData = logData.slice(logData.length - DEFAULT_LISTING_LIMIT);
