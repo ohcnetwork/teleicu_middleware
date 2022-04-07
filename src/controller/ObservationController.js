@@ -30,7 +30,7 @@ export class ObservationController {
 
     const filtered = Object.values(staticObservations)
       .reduce((acc, curr) => {
-        const latestValue = JSON.parse(curr.latestValue);
+        const latestValue = curr.latestValue;
         if (latestValue["device_id"] === ip) return [...acc, curr];
         return acc;
       }, [])
