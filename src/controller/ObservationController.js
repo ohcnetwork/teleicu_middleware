@@ -1,24 +1,43 @@
-var staticObservations = {};
+var staticObservations = [];
+var activeDevices = [];
 var lastRequestData = {};
 var logData = [];
 
 const DEFAULT_LISTING_LIMIT = 10;
 
 const addObservation = (observation) => {
-  staticObservations = {
-    ...staticObservations,
-    [observation.device_id]: {
-      ...staticObservations[observation.device_id],
-      [observation.observation_id]: {
-        firstObservationAt:
-          staticObservations[observation.observation_id]?.firstObservationAt ??
-          observation["date-time"],
-        lastObservationAt: observation["date-time"],
-        hits: (staticObservations[observation.observation_id]?.hits ?? 0) + 1,
-        latestValue: observation,
+  if (activeDevices.includes(observation.device_id)) {
+    staticObservations = staticObservations.map((item) => {
+      if (item.device_id === observation.device_id) {
+        // Slice the observations to the last DEFAULT_LISTING_LIMIT entries
+        const slicedObservations =
+          item.observations[observation.observation_id]?.slice(
+            -DEFAULT_LISTING_LIMIT
+          ) || [];
+        return {
+          ...item,
+          observations: {
+            ...item.observations,
+            [observation.observation_id]: [...slicedObservations, observation],
+          },
+          last_updated: new Date(),
+        };
+      }
+      return item;
+    });
+  } else {
+    activeDevices.push(observation.device_id);
+    staticObservations = [
+      ...staticObservations,
+      {
+        device_id: observation.device_id,
+        observations: {
+          [observation.observation_id]: [observation],
+        },
+        last_updated: new Date(),
       },
-    },
-  };
+    ];
+  }
 };
 
 const addLogData = (newData) => {
@@ -43,21 +62,20 @@ export class ObservationController {
     if (!ip) {
       return res.json(staticObservations);
     }
+    console.log("Filtering");
+    const filtered = Object.values(staticObservations).reduce((acc, curr) => {
+      console.log("curr", curr);
+      const latestValue = curr[ip];
+      return latestValue;
+    }, []);
+    // Sort the observation by last updated time.
+    // .sort(
+    //   (a, b) => new Date(a.lastObservationAt) - new Date(b.lastObservationAt)
+    // )
+    // // Limit the results
+    // .slice(0, limit);
 
-    const filtered = Object.values(staticObservations)
-      .reduce((acc, curr) => {
-        const latestValue = curr.latestValue;
-        if (latestValue["device_id"] === ip) return [...acc, curr];
-        return acc;
-      }, [])
-      // Sort the observation by last updated time.
-      .sort(
-        (a, b) => new Date(a.lastObservationAt) - new Date(b.lastObservationAt)
-      )
-      // Limit the results
-      .slice(0, limit);
-
-    return res.json(filtered);
+    return res.json(filtered ?? []);
   }
 
   static getLogData(req, res) {
