@@ -23,7 +23,7 @@ const addObservation = (observation) => {
 
 const addLogData = (newData) => {
   logData = logData.filter((log) => {
-    if (log.dateTime - newDate() > 1000) {
+    if (log.dateTime - new Date() > 1000) {
       return false;
     }
     return true;
