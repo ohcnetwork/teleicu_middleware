@@ -1,3 +1,5 @@
+import { filterClients } from "../utils/wsUtils.js";
+
 var staticObservations = [];
 var activeDevices = [];
 var lastRequestData = {};
