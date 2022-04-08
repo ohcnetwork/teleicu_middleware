@@ -2,6 +2,7 @@ import pidusage from "pidusage";
 import { loadavg } from "os";
 
 import { eventType } from "../utils/eventTypeConstant.js";
+import { filterClients } from "../utils/wsUtils.js";
 
 export class ServerStatusController {
   static init(ws) {
@@ -30,9 +31,10 @@ export class ServerStatusController {
               load: loadavg()[0] || 0,
             };
 
-            server.clients.forEach((c) => {
-              c.send(JSON.stringify(data));
+            filterClients(server, "/logger").forEach((client) => {
+              client.send(JSON.stringify(data));
             });
+
           });
         }, 1000);
       }
