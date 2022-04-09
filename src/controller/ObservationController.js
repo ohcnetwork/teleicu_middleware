@@ -103,7 +103,7 @@ export class ObservationController {
     if (typeof observations !== "object") throw new BadRequestException("Invalid observations provided")
 
     filterClients(req.wsInstance.getWss(), "/observations")
-      .forEach(client => client.send(JSON.stringify(observations)))
+      .forEach(client => client.send(JSON.stringify(observations?.filter(observation => observation?.device_id === client?.params?.ip))))
 
     if (Array.isArray(observations)) {
       observations.forEach((observation) => {

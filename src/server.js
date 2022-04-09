@@ -64,7 +64,10 @@ app.use(healthRouter)
 app.get("/.well-known/openid-configuration", openidConfigController)
 
 app.ws("/logger", (ws, req) => { ws.route = "/logger" });
-app.ws('/observations', (ws, req) => { ws.route = "/observations" });
+app.ws('/observations/:ip', (ws, req) => {
+  ws.route = "/observations"
+  ws.params = req.params
+});
 
 // Error handler
 app.use(errorHandler);
