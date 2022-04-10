@@ -3,7 +3,7 @@ import { ObservationController } from "../controller/ObservationController.js";
 import { validate } from "../middleware/validate.js";
 import { observationsValidators } from "../Validators/observationValidators.js";
 
-const router = express();
+const router = express.Router();
 
 router.get("/get_observations", ObservationController.getObservations);
 

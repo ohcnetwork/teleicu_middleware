@@ -1,3 +1,5 @@
+import { filterClients } from "../utils/wsUtils.js";
+
 var staticObservations = [];
 var activeDevices = [];
 var lastRequestData = {};
@@ -96,28 +98,26 @@ export class ObservationController {
     // If req.body.observations is a single object, then we need to create a new observation for it
     // If req.body.observations is undefined, then we need to return an error
     // If req.body.observations is not an array or object, then we need to return an error
-    if (observations === undefined) {
-      res.status(400).send({
-        message: "No observations provided",
-      });
-      return;
-    }
+    if (!observations) throw new BadRequestException("No observations provided")
+
+    if (typeof observations !== "object") throw new BadRequestException("Invalid observations provided")
+
+    filterClients(req.wsInstance.getWss(), "/observations")
+      .forEach(client => client.send(JSON.stringify(observations?.filter(observation => observation?.device_id === client?.params?.ip))))
+
     if (Array.isArray(observations)) {
       observations.forEach((observation) => {
         console.log("observation", observation.observation_id);
         addObservation(observation);
       });
-      res.send(req.body);
-    } else if (typeof observations === "object") {
-      console.log("observation", observations.observation_id);
-      addObservation(observations);
-      res.send(req.body);
-    } else {
-      res.status(400).send({
-        message: "Invalid observations provided",
-      });
+      return res.send(req.body);
     }
-    console.log("staticObservations", staticObservations);
+
+    // console.log("observation", observations.observation_id);
+    addObservation(observations);
+    // server.clients.forEach((c) => c.send(JSON.stringify(data)));
+    res.send(req.body);
+
   }
 
   static getTime = async (req, res) => {
@@ -125,4 +125,5 @@ export class ObservationController {
       time: new Date().toISOString(),
     });
   };
+
 }

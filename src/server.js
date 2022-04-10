@@ -22,8 +22,9 @@ import { serverStatusRouter } from "./router/serverStatusRouter.js";
 import { healthRouter } from "./router/healthRouter.js"
 
 import { ServerStatusController } from "./controller/ServerStatusController.js";
+import { getWs } from "./middleware/getWs.js";
 
-import {openidConfigController} from "./controller/OpenidConfig.js"
+import { openidConfigController } from "./controller/OpenidConfig.js"
 
 
 const PORT = process.env.PORT || 8090;
@@ -34,6 +35,7 @@ const ws = enableWs(app);
 app.set("view engine", "ejs");
 app.set("views", path.join(path.resolve(), "src/views"));
 
+app.use(getWs(ws))
 app.use(express.static(path.join(path.resolve(), "src/public")));
 app.use(cors());
 app.options("*", cors());
@@ -41,9 +43,9 @@ app.use(helmet({ contentSecurityPolicy: false }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
+// ws.getWss().clients.forEach(i => i.url)
 // logger
-app.use(morganWithWs(ws));
+app.use(morganWithWs);
 
 app.get("/", (req, res) => res.render("pages/index"));
 // Swagger definition
@@ -59,12 +61,16 @@ app.use(configRouter);
 app.use(serverStatusRouter);
 app.use(healthRouter)
 
-app.get("/.well-known/openid-configuration" , openidConfigController)
+app.get("/.well-known/openid-configuration", openidConfigController)
 
-app.ws("/logger", (ws, req) => { });
+app.ws("/logger", (ws, req) => { ws.route = "/logger" });
+app.ws('/observations/:ip', (ws, req) => {
+  ws.route = "/observations"
+  ws.params = req.params
+});
 
 // Error handler
-app.use(errorHandler(ws));
+app.use(errorHandler);
 app.all("*", notFoundController);
 
 // Server status monitor
