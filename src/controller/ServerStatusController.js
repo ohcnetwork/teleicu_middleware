@@ -8,9 +8,9 @@ export class ServerStatusController {
   static init(ws) {
     const server = ws.getWss("/logger");
     let intervalId;
+    const clients = filterClients(server, "/logger")
     server.on("connection", () => {
-      console.log("[SERVER] : Client connected");
-      if (!intervalId && server.clients?.size) {
+      if (!intervalId && clients.length !== 0) {
         intervalId = setInterval(() => {
           pidusage(process.pid, (err, stat) => {
             if (err) {
@@ -31,7 +31,7 @@ export class ServerStatusController {
               load: loadavg()[0] || 0,
             };
 
-            filterClients(server, "/logger").forEach((client) => {
+            clients.forEach((client) => {
               client.send(JSON.stringify(data));
             });
 
