@@ -8,8 +8,9 @@ export class ServerStatusController {
   static init(ws) {
     const server = ws.getWss("/logger");
     let intervalId;
-    const clients = filterClients(server, "/logger")
+    let clients;
     server.on("connection", () => {
+      clients = filterClients(server, "/logger")
       if (!intervalId && clients.length !== 0) {
         intervalId = setInterval(() => {
           pidusage(process.pid, (err, stat) => {
@@ -38,6 +39,11 @@ export class ServerStatusController {
           });
         }, 1000);
       }
+
+      clients?.forEach(client => {
+        client.on("close", () => { clients = filterClients(server, "/logger") })
+      })
+
     });
   }
 
