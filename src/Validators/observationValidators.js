@@ -91,6 +91,6 @@ export const bloodPressureValidators = [
 ];
 
 export const observationsValidators = [
-  ...bloodPressureValidators,
-  ...getObservationsValidators(),
+  // ...bloodPressureValidators,
+  // ...getObservationsValidators(),
 ];
