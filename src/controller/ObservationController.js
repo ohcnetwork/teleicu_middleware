@@ -7,13 +7,13 @@ var logData = [];
 
 const DEFAULT_LISTING_LIMIT = 10;
 
-const addObservations = (observations) => {
+const flattenObservations = (observations) => {
   if (Array.isArray(observations)) {
-    observations.forEach((observation) => {
-      addObservations(observation);
-    });
+    return observations.reduce((acc, observation) => {
+      return acc.concat(flattenObservations(observation));
+    }, []);
   } else {
-    addObservation(observations);
+    return [observations];
   }
 };
 
@@ -121,9 +121,10 @@ export class ObservationController {
     if (typeof observations !== "object")
       throw new BadRequestException("Invalid observations provided");
 
+    const flattenedObservations = flattenObservations(observations);
     filterClients(req.wsInstance.getWss(), "/observations").forEach(
       (client) => {
-        const filteredObservations = observations?.filter(
+        const filteredObservations = flattenedObservations?.filter(
           (observation) => observation?.device_id === client?.params?.ip
         );
         if (filteredObservations.length) {
@@ -131,7 +132,9 @@ export class ObservationController {
         }
       }
     );
-    addObservations(observations);
+    flattenedObservations.forEach((observation) => {
+      addObservation(observation);
+    });
     return res.send(req.body);
   }
 
