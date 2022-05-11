@@ -19,13 +19,12 @@ import { notFoundController } from "./controller/NotFoundController.js";
 import { swaggerSpec } from "./swagger/swagger.js";
 import { morganWithWs } from "./middleware/morganWithWs.js";
 import { serverStatusRouter } from "./router/serverStatusRouter.js";
-import { healthRouter } from "./router/healthRouter.js"
+import { healthRouter } from "./router/healthRouter.js";
 
 import { ServerStatusController } from "./controller/ServerStatusController.js";
 import { getWs } from "./middleware/getWs.js";
 
-import { openidConfigController } from "./controller/OpenidConfig.js"
-
+import { openidConfigController } from "./controller/OpenidConfig.js";
 
 const PORT = process.env.PORT || 8090;
 
@@ -35,7 +34,7 @@ const ws = enableWs(app);
 app.set("view engine", "ejs");
 app.set("views", path.join(path.resolve(), "src/views"));
 
-app.use(getWs(ws))
+app.use(getWs(ws));
 app.use(express.static(path.join(path.resolve(), "src/public")));
 app.use(cors());
 app.options("*", cors());
@@ -46,6 +45,14 @@ app.use(express.urlencoded({ extended: true }));
 // ws.getWss().clients.forEach(i => i.url)
 // logger
 app.use(morganWithWs);
+
+// Request Logger
+// app.use((req, res, next)=> {
+//   console.log('<--Request Logger-->');
+//   console.log(req.body)
+//   console.log('<!--Request Logger--!>');
+//   next();
+// })
 
 app.get("/", (req, res) => res.render("pages/index"));
 // Swagger definition
@@ -59,14 +66,16 @@ app.use(cameraRouter);
 app.use(observationRouter);
 app.use(configRouter);
 app.use(serverStatusRouter);
-app.use(healthRouter)
+app.use(healthRouter);
 
-app.get("/.well-known/openid-configuration", openidConfigController)
+app.get("/.well-known/openid-configuration", openidConfigController);
 
-app.ws("/logger", (ws, req) => { ws.route = "/logger" });
-app.ws('/observations/:ip', (ws, req) => {
-  ws.route = "/observations"
-  ws.params = req.params
+app.ws("/logger", (ws, req) => {
+  ws.route = "/logger";
+});
+app.ws("/observations/:ip", (ws, req) => {
+  ws.route = "/observations";
+  ws.params = req.params;
 });
 
 // Error handler

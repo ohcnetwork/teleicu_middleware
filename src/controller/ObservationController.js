@@ -7,7 +7,24 @@ var logData = [];
 
 const DEFAULT_LISTING_LIMIT = 10;
 
+const addObservations = (observations) => {
+  if (Array.isArray(observations)) {
+    observations.forEach((observation) => {
+      addObservations(observation);
+    });
+  } else {
+    addObservation(observations);
+  }
+};
+
 const addObservation = (observation) => {
+  console.log(
+    observation["date-time"],
+    ": ",
+    observation.device_id,
+    "|",
+    observation.observation_id
+  );
   if (activeDevices.includes(observation.device_id)) {
     staticObservations = staticObservations.map((item) => {
       if (item.device_id === observation.device_id) {
@@ -98,31 +115,24 @@ export class ObservationController {
     // If req.body.observations is a single object, then we need to create a new observation for it
     // If req.body.observations is undefined, then we need to return an error
     // If req.body.observations is not an array or object, then we need to return an error
-    if (!observations) throw new BadRequestException("No observations provided")
+    if (!observations)
+      throw new BadRequestException("No observations provided");
 
-    if (typeof observations !== "object") throw new BadRequestException("Invalid observations provided")
+    if (typeof observations !== "object")
+      throw new BadRequestException("Invalid observations provided");
 
-    filterClients(req.wsInstance.getWss(), "/observations")
-      .forEach(client => {
-        const filteredObservations = observations?.filter(observation => observation?.device_id === client?.params?.ip);
+    filterClients(req.wsInstance.getWss(), "/observations").forEach(
+      (client) => {
+        const filteredObservations = observations?.filter(
+          (observation) => observation?.device_id === client?.params?.ip
+        );
         if (filteredObservations.length) {
-          client.send(JSON.stringify(filteredObservations))
+          client.send(JSON.stringify(filteredObservations));
         }
-      });
-
-    if (Array.isArray(observations)) {
-      observations.forEach((observation) => {
-        console.log("observation", observation.observation_id);
-        addObservation(observation);
-      });
-      return res.send(req.body);
-    }
-
-    // console.log("observation", observations.observation_id);
-    addObservation(observations);
-    // server.clients.forEach((c) => c.send(JSON.stringify(data)));
-    res.send(req.body);
-
+      }
+    );
+    addObservations(observations);
+    return res.send(req.body);
   }
 
   static getTime = async (req, res) => {
@@ -130,5 +140,4 @@ export class ObservationController {
       time: new Date().toISOString(),
     });
   };
-
 }
