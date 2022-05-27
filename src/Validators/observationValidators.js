@@ -1,4 +1,4 @@
-import { check, body, checkSchema } from "express-validator";
+import { query, check, body, checkSchema } from "express-validator";
 
 const Observations = {
   ST: "ST",
@@ -94,3 +94,11 @@ export const observationsValidators = [
   // ...bloodPressureValidators,
   // ...getObservationsValidators(),
 ];
+
+export const vitalsValidator = [
+  query("device_id")
+    .exists({ checkFalsy: true })
+    .withMessage("device_id is required.")
+    .isString()
+    .withMessage("device_id must be string."),
+]
