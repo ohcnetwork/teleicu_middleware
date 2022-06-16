@@ -1,20 +1,22 @@
-import groupBy from "lodash.groupby"
+import groupBy from "lodash.groupby";
 
 export class ObservationsMap {
-    #observations = {}
-    constructor() { }
+  #observations = {};
+  constructor() {}
 
-    get(id) {
-        console.log(this.#observations)
-        return this.#observations[id]
+  get(id) {
+    return this.#observations[id];
+  }
+
+  set(data) {
+    if (data) {
+      const newData = groupBy(data, "device_id");
+
+      Object.keys(newData).forEach((key) => {
+        this.#observations[key] = newData[key] ?? this.#observations[key];
+      });
+
+      console.log("DATA", Object.keys(this.#observations));
     }
-
-    set(data) {
-        if (data) {
-            console.log(data)
-            this.#observations = groupBy(data, "device_id")
-            console.log("DATA", this.#observations)
-        }
-    }
-
+  }
 }

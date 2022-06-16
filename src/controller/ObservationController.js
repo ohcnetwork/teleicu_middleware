@@ -78,7 +78,7 @@ const addLogData = (newData) => {
 export class ObservationController {
   // static variable to hold the latest observations
 
-  static latestObservation = new ObservationsMap()
+  static latestObservation = new ObservationsMap();
 
   static getObservations(req, res) {
     const limit = req.query?.limit || DEFAULT_LISTING_LIMIT;
@@ -129,7 +129,7 @@ export class ObservationController {
 
     const flattenedObservations = flattenObservations(observations);
 
-    this.latestObservation.set(flattenedObservations)
+    this.latestObservation.set(flattenedObservations);
 
     filterClients(req.wsInstance.getWss(), "/observations").forEach(
       (client) => {
@@ -147,7 +147,7 @@ export class ObservationController {
     });
 
     return res.send(req.body);
-  }
+  };
 
   static getTime = async (req, res) => {
     res.send({
@@ -156,14 +156,16 @@ export class ObservationController {
   };
 
   static getLatestVitals = catchAsync(async (req, res) => {
-    const { device_id } = req.query
-    const data = this.latestObservation.get(device_id)
+    const { device_id } = req.query;
+    console.log(this.latestObservation);
+    const data = this.latestObservation.get(device_id);
 
-    if (!data) throw new NotFoundException(`No data found with device id ${device_id}`)
+    if (!data)
+      throw new NotFoundException(`No data found with device id ${device_id}`);
 
     res.send({
       status: "success",
-      data
-    })
-  })
+      data,
+    });
+  });
 }
