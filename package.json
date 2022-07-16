@@ -42,6 +42,7 @@
   "homepage": "https://github.com/coronasafe/teleicu_middleware#readme",
   "devDependencies": {
     "@types/express-ws": "^3.0.1",
-    "nodemon": "^2.0.15"
+    "nodemon": "^2.0.15",
+    "prisma": "^4.0.0"
   }
 }
