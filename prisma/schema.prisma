@@ -9,3 +9,21 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Asset {
+  id          Int          @id @default(autoincrement())
+  name        String
+  description String
+  externalId  String       @unique
+  ipAddress   String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @default(now())
+  DailyRound  DailyRound[]
+}
+
+model DailyRound {
+  id      Int      @id @default(autoincrement())
+  asset   Asset    @relation(fields: [assetId], references: [id])
+  assetId Int
+  time    DateTime
+}
