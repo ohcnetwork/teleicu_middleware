@@ -10,6 +10,7 @@ import enableWs from "express-ws";
 
 import { cameraRouter } from "./router/cameraRouter.js";
 import { configRouter } from "./router/configRouter.js";
+import { assetConfigRouter } from "./router/assetConfigRouter.js";
 import { authRouter } from "./router/authRouter.js";
 
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -65,6 +66,7 @@ app.use(authRouter);
 app.use(cameraRouter);
 app.use(observationRouter);
 app.use(configRouter);
+app.use(assetConfigRouter);
 app.use(serverStatusRouter);
 app.use(healthRouter);
 
