@@ -9,6 +9,11 @@ export class AssetConfigController {
 
   static listAssets = async (req, res) => {
     prisma.asset.findMany({
+      where: {
+        deleted: {
+          equals: false
+        }
+      },
       orderBy: [
         {
           updatedAt: 'desc'
@@ -17,7 +22,7 @@ export class AssetConfigController {
     }).then(assets => {
       res.render("pages/assetList", { dayjs, assets });
     }).catch(err => {
-      console.log(err);
+      //TODO: show error message
       res.render("pages/assetList", { dayjs, assets: [] });
     })
   }
@@ -35,7 +40,7 @@ export class AssetConfigController {
       res.redirect("/assets");
     }).catch(err => {
       console.log(err);
-      // res.error(err);
+      //TODO: show error message
       res.redirect("/assets");
     });
   }
@@ -67,7 +72,7 @@ export class AssetConfigController {
       res.redirect("/assets");
     }).catch(err => {
       console.log(err);
-      // res.error(err);
+      //TODO: show error message
       res.redirect("/assets");
     })
   }
@@ -82,15 +87,18 @@ export class AssetConfigController {
   }
 
   static deleteAsset = async (req, res) => {
-    prisma.asset.delete({
+    prisma.asset.update({
       where: {
         id: Number(req.params.id)
+      },
+      data:{
+        deleted: true,
       }
     }).then(asset => {
       res.redirect("/assets");
     }).catch(err => {
       console.log(err);
-      // res.error(err);
+      //TODO: show error message
       res.redirect("/assets");
     })
   }

@@ -18,6 +18,7 @@ model Asset {
   ipAddress   String
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @default(now())
+  deleted     Boolean      @default(false)
   DailyRound  DailyRound[]
 }
 
