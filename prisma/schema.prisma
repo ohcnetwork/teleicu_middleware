@@ -26,5 +26,7 @@ model DailyRound {
   id      Int      @id @default(autoincrement())
   asset   Asset    @relation(fields: [assetId], references: [id])
   assetId Int
+  status  String
+  data    String
   time    DateTime
 }
