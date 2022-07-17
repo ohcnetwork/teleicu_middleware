@@ -1,5 +1,5 @@
-import { PrismaClient } from '@prisma/client'
-import dayjs from 'dayjs'
+import { PrismaClient } from "@prisma/client"
+import dayjs from "dayjs"
 
 const prisma = new PrismaClient()
 
@@ -16,14 +16,13 @@ export class AssetConfigController {
       },
       orderBy: [
         {
-          updatedAt: 'desc'
+          updatedAt: "desc"
         }
       ]
     }).then(assets => {
-      res.render("pages/assetList", { dayjs, assets });
+      res.render("pages/assetList", { dayjs, assets, errors: req.flash("error") });
     }).catch(err => {
-      //TODO: show error message
-      res.render("pages/assetList", { dayjs, assets: [] });
+      res.render("pages/assetList", { dayjs, assets: [], errors: [err.message] });
     })
   }
 
@@ -36,23 +35,26 @@ export class AssetConfigController {
         ipAddress,
         externalId
       }
-    }).then(asset => {
+    }).then(_ => {
       res.redirect("/assets");
     }).catch(err => {
-      console.log(err);
-      //TODO: show error message
+      req.flash("error", err.message);
       res.redirect("/assets");
     });
   }
 
   static updateAssetForm = async (req, res) => {
 
-    const asset = await prisma.asset.findUnique({
+    prisma.asset.findUnique({
       where: {
         id: Number(req.params.id)
       }
-    });
-    res.render("pages/assetForm", { dayjs, asset });
+    }).then(asset => {
+      res.render("pages/assetForm", { dayjs, asset, errors: req.flash("error") });
+    }).catch(err => {
+      req.flash("error", err.message);
+      res.redirect("/assets");
+    })
   }
 
   static updateAsset = async (req, res) => {
@@ -68,12 +70,11 @@ export class AssetConfigController {
         ipAddress,
         updatedAt: new Date()
       }
-    }).then(asset => {
+    }).then(_ => {
       res.redirect("/assets");
     }).catch(err => {
-      console.log(err);
-      //TODO: show error message
-      res.redirect("/assets");
+      req.flash("error", err.message);
+      res.redirect(`/assets/${req.params.id}`);
     })
   }
 
@@ -91,14 +92,13 @@ export class AssetConfigController {
       where: {
         id: Number(req.params.id)
       },
-      data:{
+      data: {
         deleted: true,
       }
-    }).then(asset => {
+    }).then(_ => {
       res.redirect("/assets");
     }).catch(err => {
-      console.log(err);
-      //TODO: show error message
+      req.flash("error", err.message);
       res.redirect("/assets");
     })
   }
