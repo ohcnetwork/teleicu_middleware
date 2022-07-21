@@ -1,3 +1,7 @@
+import { BadRequestException } from "../Exception/BadRequestException.js";
+import { NotFoundException } from "../Exception/NotFoundException.js";
+import { catchAsync } from "../utils/catchAsync.js";
+import { ObservationsMap } from "../utils/ObservationsMap.js";
 import { filterClients } from "../utils/wsUtils.js";
 
 var staticObservations = [];
@@ -74,6 +78,8 @@ const addLogData = (newData) => {
 export class ObservationController {
   // static variable to hold the latest observations
 
+  static latestObservation = new ObservationsMap()
+
   static getObservations(req, res) {
     const limit = req.query?.limit || DEFAULT_LISTING_LIMIT;
     const ip = req.query?.ip;
@@ -81,9 +87,9 @@ export class ObservationController {
     if (!ip) {
       return res.json(staticObservations);
     }
-    console.log("Filtering");
+    // console.log("Filtering");
     const filtered = Object.values(staticObservations).reduce((acc, curr) => {
-      console.log("curr", curr);
+      // console.log("curr", curr);
       const latestValue = curr[ip];
       return latestValue;
     }, []);
@@ -105,10 +111,10 @@ export class ObservationController {
     return res.json(lastRequestData);
   }
 
-  static updateObservations(req, res) {
+  static updateObservations = (req, res) => {
     // database logic
     lastRequestData = req.body;
-    console.log("updateObservations", req.body);
+    // console.log("updateObservations", req.body);
     addLogData(req.body);
     const observations = req.body;
     // If req.body.observations is an array, then we need to loop through it and create a new observation for each one
@@ -122,6 +128,9 @@ export class ObservationController {
       throw new BadRequestException("Invalid observations provided");
 
     const flattenedObservations = flattenObservations(observations);
+
+    this.latestObservation.set(flattenedObservations)
+
     filterClients(req.wsInstance.getWss(), "/observations").forEach(
       (client) => {
         const filteredObservations = flattenedObservations?.filter(
@@ -132,9 +141,11 @@ export class ObservationController {
         }
       }
     );
+
     flattenedObservations.forEach((observation) => {
       addObservation(observation);
     });
+
     return res.send(req.body);
   }
 
@@ -143,4 +154,16 @@ export class ObservationController {
       time: new Date().toISOString(),
     });
   };
+
+  static getLatestVitals = catchAsync(async (req, res) => {
+    const { device_id } = req.query
+    const data = this.latestObservation.get(device_id)
+
+    if (!data) throw new NotFoundException(`No data found with device id ${device_id}`)
+
+    res.send({
+      status: "success",
+      data
+    })
+  })
 }
