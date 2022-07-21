@@ -4,7 +4,7 @@ import { catchAsync } from "../utils/catchAsync.js";
 import { ObservationsMap } from "../utils/ObservationsMap.js";
 import { filterClients } from "../utils/wsUtils.js";
 
-var staticObservations = [];
+export let staticObservations = [];
 var activeDevices = [];
 var lastRequestData = {};
 var logData = [];

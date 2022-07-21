@@ -1,4 +1,2 @@
-import * as dotenv from "dotenv";
-dotenv.config({ path: "./.env" });
-
 export const facilityID = process.env.FACILITY_ID;
+export const careApi = process.env.CARE_API;
