@@ -2,6 +2,7 @@
   "dependencies": {
     "@sentry/node": "^6.17.7",
     "@sentry/tracing": "^6.17.7",
+    "axios": "^0.26.1",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
     "ejs": "^3.1.6",
@@ -10,6 +11,7 @@
     "express-ws": "^5.0.2",
     "helmet": "^4.6.0",
     "morgan": "^1.10.0",
+    "node-jose": "^2.1.0",
     "onvif": "^0.6.5",
     "pidusage": "^3.0.0",
     "swagger-jsdoc": "^6.1.0",

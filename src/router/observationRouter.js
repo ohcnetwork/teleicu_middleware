@@ -3,7 +3,9 @@ import { ObservationController } from "../controller/ObservationController.js";
 import { validate } from "../middleware/validate.js";
 import { observationsValidators } from "../Validators/observationValidators.js";
 
-const router = express();
+const router = express.Router();
+
+router.get("/get_observations", ObservationController.getObservations);
 
 router.post(
   "/update_observations",
@@ -12,5 +14,11 @@ router.post(
 );
 
 router.get("/get_time", ObservationController.getTime);
+
+// Debugging Endpoints
+
+router.get("/get_log_data", ObservationController.getLogData);
+
+router.get("/get_last_request_data", ObservationController.getLastRequestData);
 
 export { router as observationRouter };

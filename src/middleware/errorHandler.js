@@ -1,4 +1,5 @@
 import { eventType } from "../utils/eventTypeConstant.js";
+import { filterClients } from "../utils/wsUtils.js";
 
 const sendDevError = (err, res) => {
   res.status(err.statusCode).json({
@@ -16,8 +17,7 @@ const sendProdError = (err, res) => {
   });
 };
 
-
-export const errorHandler = (ws) => (err, req, res, next) => {
+export const errorHandler = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "error";
 
@@ -33,8 +33,8 @@ export const errorHandler = (ws) => (err, req, res, next) => {
     url: req.url,
   };
 
-  const server = ws.getWss("/logger");
-  server.clients.forEach((c) => c.send(JSON.stringify(data)));
+  const server = req.wsInstance.getWss();
+  filterClients(server, "/logger").forEach((c) => c.send(JSON.stringify(data)));
 
   if (env === "development") {
     console.error(err);

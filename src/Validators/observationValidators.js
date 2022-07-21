@@ -1,6 +1,7 @@
 import { check, body, checkSchema } from "express-validator";
 
 const Observations = {
+  ST: "ST",
   HEART_RATE: "heart-rate",
   PULSE_RATE: "pulse-rate",
   RESPIRATORY_RATE: "respiratory-rate",
@@ -36,16 +37,16 @@ const baseObservationValidators = [
     .withMessage("date-time must be string.")
     .custom((val) => !isNaN(new Date(val)))
     .withMessage("date-time must be valid date string."),
-  body("*.patient-id")
-    .exists({ checkFalsy: true })
-    .withMessage("patient-id is required.")
-    .isString()
-    .withMessage("patient-id must be string."),
-  body("*.patient-name")
-    .exists({ checkFalsy: true })
-    .withMessage("patient-name is required.")
-    .isString()
-    .withMessage("patient-name must be string."),
+  // body("*.patient-id")
+  //   .exists({ checkFalsy: true })
+  //   .withMessage("patient-id is required.")
+  //   .isString()
+  //   .withMessage("patient-id must be string."),
+  // body("*.patient-name")
+  //   .exists({ checkFalsy: true })
+  //   .withMessage("patient-name is required.")
+  //   .isString()
+  //   .withMessage("patient-name must be string."),
   body("*.status")
     .exists({ checkFalsy: true })
     .withMessage("status is required.")
@@ -90,6 +91,6 @@ export const bloodPressureValidators = [
 ];
 
 export const observationsValidators = [
-  ...bloodPressureValidators,
-  ...getObservationsValidators(),
+  // ...bloodPressureValidators,
+  // ...getObservationsValidators(),
 ];
