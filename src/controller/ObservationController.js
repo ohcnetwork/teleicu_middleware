@@ -149,15 +149,16 @@ export class ObservationController {
           diastolic: data["SpO2"]?.[0]?.diastolic?.value,
         } : null
 
-        let temperature = getValueFromData(data["body-temperature1"]?.[0])
+        const temp = data["body-temperature1"]?.[0]
+        let temperature = getValueFromData(temp)
         let temperature_measured_at = null
         if (
-          temperature < data["body-temperature1"]?.[0]?.["low-limit"] ||
-          data["body-temperature1"]?.[0]?.["high-limit"] < temperature
+          temperature < temp?.["low-limit"] ||
+          temp?.["high-limit"] < temperature
         ) {
           temperature = null
         } else {
-          temperature_measured_at = dayjs(data["body-temperature1"]?.[0]?.["date-time"], "YYYY-MM-DD HH:mm:ss").toISOString()
+          temperature_measured_at = dayjs(temp?.["date-time"], "YYYY-MM-DD HH:mm:ss").toISOString()
         }
 
         const payload = {
