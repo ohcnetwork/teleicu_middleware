@@ -134,17 +134,17 @@ export class ObservationController {
       try {
         if (now - observation.last_updated > 3600 * 1000) continue; // skip if older than 1 hour
 
-        console.log("Updating observation for device:", observation.device_id);
+        console.log("[Daily Round] Updating observation for device:", observation.device_id);
 
         const asset = await getAsset(observation.device_id);
         if (asset === null) {
-          console.log("Asset not found for assetIp: ", observation.device_id)
+          console.log("[Daily Round] Asset not found for assetIp: ", observation.device_id)
           continue
         }
 
         const { consultation_id, patient_id } = await getPatientId(asset.externalId);
         if (!patient_id) {
-          console.log("No patient connected assetExternalId: ", asset.externalId)
+          console.log("[Daily Round] No patient connected assetExternalId: ", asset.externalId)
           continue
         }
 
@@ -184,7 +184,7 @@ export class ObservationController {
           { headers: await generateHeaders(asset.externalId) }
         ).then(res => {
           console.log(res.data)
-          console.log("Updated observation for device:", observation.device_id);
+          console.log("[Daily Round] Updated observation for device:", observation.device_id);
           return res
         }).catch(err => {
           console.log(err.response.data || err.response.statusText)
@@ -193,7 +193,7 @@ export class ObservationController {
         })
 
       } catch (error) {
-        console.log("Error updating observations to care", error)
+        console.log("[Daily Round] Error updating observations to care", error)
       }
     }
   }
