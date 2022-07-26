@@ -137,10 +137,16 @@ export class ObservationController {
         console.log("Updating observation for device:", observation.device_id);
 
         const asset = await getAsset(observation.device_id);
-        if (asset === null) continue
+        if (asset === null) {
+          console.log("Asset not found for assetIp: ", observation.device_id)
+          continue
+        }
 
         const { consultation_id, patient_id } = await getPatientId(asset.externalId);
-        if (!patient_id) continue
+        if (!patient_id) {
+          console.log("No patient connected assetExternalId: ", asset.externalId)
+          continue
+        }
 
         const data = observation.observations
 

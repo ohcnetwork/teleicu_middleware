@@ -18,20 +18,13 @@ export const getAsset = async (assetIp) => {
         equals: false
       }
     }
-  }).catch(
-    err => {
-      console.log("Asset not found for assetIp: ", assetIp)
-      console.log(err)
-      return null
-    }
-  )
+  })
 }
 
 export const getPatientId = async (assetExternalId) => {
   return await axios.get(`${careApi}/api/v1/consultation/patient_from_asset/`,
     { headers: await generateHeaders(assetExternalId) }
   ).then(res => res.data).catch(err => {
-    console.log("No patient connected assetExternalId: ", assetExternalId)
     console.log(err.response.data || err.response.statusText)
     return {}
   })
