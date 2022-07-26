@@ -61,7 +61,6 @@ jobs:
         with:
           images: |
             ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
-            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=develop,enable=${{ github.ref == 'refs/heads/develop' }}
             type=raw,value=latest-${{ github.run_number }}-{{date 'YYYYMMDD'}}-{{sha}}
@@ -79,11 +78,6 @@ jobs:
           key: ${{ runner.os }}-buildx-${{ hashFiles('package-lock.json', 'package.json', 'Dockerfile') }}
           restore-keys: |
             ${{ runner.os }}-buildx-
-      - name: Login to DockerHub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
@@ -120,7 +114,6 @@ jobs:
         with:
           images: |
             ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
-            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=production-latest,enable=${{ github.ref == 'refs/heads/master' }}
             type=raw,value=production-latest-${{ github.run_number }}-{{date 'YYYYMMDD'}}-{{sha}}
@@ -138,6 +131,25 @@ jobs:
           key: ${{ runner.os }}-buildx-${{ hashFiles('package-lock.json', 'package.json', 'Dockerfile') }}
           restore-keys: |
             ${{ runner.os }}-buildx-
-      - name: Login to DockerHub
+
+      - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
-    
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,mode=max,dest=/tmp/.buildx-cache-new
+
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
