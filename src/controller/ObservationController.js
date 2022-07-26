@@ -7,9 +7,11 @@ import { filterClients } from "../utils/wsUtils.js";
 import axios from 'axios'
 import { careApi } from "../utils/configs.js";
 import dayjs from "dayjs";
+import {generateHeaders} from "../utils/assetUtils.js";
 
+const DAILY_ROUND_TAG = "[Daily Round] "
 
-export let staticObservations = [];
+var staticObservations = [];
 var activeDevices = [];
 var lastRequestData = {};
 var logData = [];
@@ -89,6 +91,91 @@ const getValueFromData = (data) => {
   return null
 }
 
+const updateObservationsToCare = async () => {
+  console.log(DAILY_ROUND_TAG + "updateObservationsToCare started")
+  const now = new Date()
+  if (now - lastUpdatedToCare < 3600 * 1000) {
+    // only update once per hour
+    console.log(DAILY_ROUND_TAG + "updateObservationsToCare skipped")
+    return
+  }; 
+  lastUpdatedToCare = now
+
+  console.log(DAILY_ROUND_TAG + "performing daily round")
+  for (const observation of staticObservations) {
+    try {
+      if (now - observation.last_updated > 3600 * 1000) continue; // skip if older than 1 hour
+      if (!observation.device_id) continue;
+
+      console.log(DAILY_ROUND_TAG + ">> Updating observation for device:", observation.device_id);
+
+      const asset = await getAsset(observation.device_id);
+      if (asset === null) {
+        console.error(DAILY_ROUND_TAG + "Asset not found for assetIp: ", observation.device_id)
+        continue
+      }
+
+      const { consultation_id, patient_id } = await getPatientId(asset.externalId);
+      if (!patient_id) {
+        console.error(DAILY_ROUND_TAG + "Patient not found for assetExternalId: ", asset.externalId)
+        continue
+      }
+
+      const data = observation.observations
+
+      const bp = (data["SpO2"]?.[0]?.status === "final") ? {
+        systolic: data["SpO2"]?.[0]?.systolic?.value ?? null,
+        diastolic: data["SpO2"]?.[0]?.diastolic?.value ?? null,
+      } : null
+
+      const temp = data["body-temperature1"]?.[0]
+      let temperature = getValueFromData(temp)
+      let temperature_measured_at = null
+      if (
+        temperature < temp?.["low-limit"] ||
+        temp?.["high-limit"] < temperature
+      ) {
+        temperature = null
+      } else {
+        temperature_measured_at = dayjs(temp?.["date-time"], "YYYY-MM-DD HH:mm:ss").toISOString()
+      }
+
+      const payload = {
+        taken_at: observation.last_updated,
+        rounds_type: "NORMAL",
+        spo2: getValueFromData(data["SpO2"]?.[0]),
+        resp: getValueFromData(data["respiratory-rate"]?.[0]),
+        pulse: getValueFromData(data["heart-rate"]?.[0]),
+        temperature,
+        temperature_measured_at
+      }
+      if (bp !== null && bp.systolic !== null && bp.diastolic !== null) {
+        payload.bp = bp
+      }
+
+      console.log(DAILY_ROUND_TAG + "Sending payload:", payload)
+
+      await axios.post(
+        `${careApi}/api/v1/consultation/${consultation_id}/daily_rounds/`,
+        payload,
+        { headers: await generateHeaders(asset.externalId) }
+      ).then(res => {
+        console.log(res.data)
+        console.log(DAILY_ROUND_TAG + "Updated observation for device:", observation.device_id);
+        return res
+      }).catch(err => {
+        console.log(err.response.data || err.response.statusText)
+        console.log(`Error performing daily round for assetIp: ${asset.ipAddress}`)
+        return err.response
+      })
+
+    } catch (error) {
+      console.error(DAILY_ROUND_TAG + "Error updating observations to care", error)
+    }
+  }
+  console.log(DAILY_ROUND_TAG + "daily round finished")
+}
+
 export class ObservationController {
   // static variable to hold the latest observations
 
@@ -123,79 +210,6 @@ export class ObservationController {
 
   static getLastRequestData(req, res) {
     return res.json(lastRequestData);
-  }
-
-  static updateObservationsToCare = async () => {
-    const now = new Date()
-    if (now - lastUpdatedToCare < 3600 * 1000) return; // only update once per hour
-    lastUpdatedToCare = now
-
-    for (const observation of staticObservations) {
-      try {
-        if (now - observation.last_updated > 3600 * 1000) continue; // skip if older than 1 hour
-
-        console.log("[Daily Round] Updating observation for device:", observation.device_id);
-
-        const asset = await getAsset(observation.device_id);
-        if (asset === null) {
-          console.log("[Daily Round] Asset not found for assetIp: ", observation.device_id)
-          continue
-        }
-
-        const { consultation_id, patient_id } = await getPatientId(asset.externalId);
-        if (!patient_id) {
-          console.log("[Daily Round] No patient connected assetExternalId: ", asset.externalId)
-          continue
-        }
-
-        const data = observation.observations
-
-        const bp = (data["SpO2"]?.[0]?.status === "final") ? {
-          systolic: data["SpO2"]?.[0]?.systolic?.value,
-          diastolic: data["SpO2"]?.[0]?.diastolic?.value,
-        } : null
-
-        const temp = data["body-temperature1"]?.[0]
-        let temperature = getValueFromData(temp)
-        let temperature_measured_at = null
-        if (
-          temperature < temp?.["low-limit"] ||
-          temp?.["high-limit"] < temperature
-        ) {
-          temperature = null
-        } else {
-          temperature_measured_at = dayjs(temp?.["date-time"], "YYYY-MM-DD HH:mm:ss").toISOString()
-        }
-
-        const payload = {
-          taken_at: observation.last_updated,
-          rounds_type: "NORMAL",
-          spo2: getValueFromData(data["SpO2"]?.[0]),
-          resp: getValueFromData(data["respiratory-rate"]?.[0]),
-          pulse: getValueFromData(data["heart-rate"]?.[0]),
-          bp,
-          temperature,
-          temperature_measured_at
-        }
-
-        await axios.post(
-          `${careApi}/api/v1/consultation/${consultation_id}/daily_rounds/`,
-          payload,
-          { headers: await generateHeaders(asset.externalId) }
-        ).then(res => {
-          console.log(res.data)
-          console.log("[Daily Round] Updated observation for device:", observation.device_id);
-          return res
-        }).catch(err => {
-          console.log(err.response.data || err.response.statusText)
-          console.log(`Error performing daily round for assetIp: ${asset.ipAddress}`)
-          return err.response
-        })
-
-      } catch (error) {
-        console.log("[Daily Round] Error updating observations to care", error)
-      }
-    }
   }
 
   static updateObservations = (req, res) => {
@@ -233,7 +247,7 @@ export class ObservationController {
       addObservation(observation);
     });
 
-    this.updateObservationsToCare()
+    updateObservationsToCare()
 
     return res.send(req.body);
   }
