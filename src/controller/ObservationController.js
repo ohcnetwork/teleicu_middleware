@@ -92,7 +92,7 @@ const getValueFromData = (data) => {
 }
 
 const updateObservationsToCare = async () => {
-  console.log(DAILY_ROUND_TAG + "updateObservationsToCare started")
+  console.log(DAILY_ROUND_TAG + "updateObservationsToCare called")
   const now = new Date()
   if (now - lastUpdatedToCare < 3600 * 1000) {
     // only update once per hour
@@ -104,8 +104,11 @@ const updateObservationsToCare = async () => {
   console.log(DAILY_ROUND_TAG + "performing daily round")
   for (const observation of staticObservations) {
     try {
-      if (now - observation.last_updated > 3600 * 1000) continue; // skip if older than 1 hour
-      if (!observation.device_id) continue;
+      if (now - observation.last_updated > 3600 * 1000) {
+        // skip if older than 1 hour
+        console.log(DAILY_ROUND_TAG + "skipping stale observations for device: " + observation.device_id)
+        continue
+      }
 
       console.log(DAILY_ROUND_TAG + ">> Updating observation for device:", observation.device_id);
 
