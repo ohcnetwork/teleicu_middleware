@@ -7,7 +7,7 @@ import { filterClients } from "../utils/wsUtils.js";
 import axios from 'axios'
 import { careApi } from "../utils/configs.js";
 import dayjs from "dayjs";
-import {generateHeaders} from "../utils/assetUtils.js";
+import { generateHeaders } from "../utils/assetUtils.js";
 
 const DAILY_ROUND_TAG = "[Daily Round] "
 
@@ -98,7 +98,7 @@ const updateObservationsToCare = async () => {
     // only update once per hour
     console.log(DAILY_ROUND_TAG + "updateObservationsToCare skipped")
     return
-  }; 
+  };
   lastUpdatedToCare = now
 
   console.log(DAILY_ROUND_TAG + "performing daily round")
@@ -134,13 +134,10 @@ const updateObservationsToCare = async () => {
       const temp = data["body-temperature1"]?.[0]
       let temperature = getValueFromData(temp)
       let temperature_measured_at = null
-      if (
-        temperature < temp?.["low-limit"] ||
-        temp?.["high-limit"] < temperature
-      ) {
-        temperature = null
-      } else {
+      if (temp?.["low-limit"] < temperature && temperature < temp?.["high-limit"]) {
         temperature_measured_at = dayjs(temp?.["date-time"], "YYYY-MM-DD HH:mm:ss").toISOString()
+      } else {
+        temperature = null
       }
 
       const payload = {
