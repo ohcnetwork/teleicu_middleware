@@ -4,7 +4,6 @@ import dayjs from "dayjs"
 const prisma = new PrismaClient()
 
 
-
 export class AssetConfigController {
 
   static listAssets = async (req, res) => {
@@ -44,7 +43,6 @@ export class AssetConfigController {
   }
 
   static updateAssetForm = async (req, res) => {
-
     prisma.asset.findUnique({
       where: {
         id: Number(req.params.id)
@@ -102,5 +100,4 @@ export class AssetConfigController {
       res.redirect("/assets");
     })
   }
-
 }
