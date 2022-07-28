@@ -42,7 +42,7 @@ export const CareCommunicationCheckController = async (req, res, next) => {
     return res.data
   }).catch(error => {
     res.status(500)
-    return { "error": "Authorization Failed" }
+    return { "error": error.response.data }
   })
-  return res.json(value)
+  return res.send(value)
 };

@@ -23,6 +23,7 @@ export const getPatientId = async (assetExternalId) => {
   return await axios.get(`${careApi}/api/v1/consultation/patient_from_asset/`,
     { headers: await generateHeaders(assetExternalId) }
   ).then(res => res.data).catch(err => {
+    console.log("[Daily Round] vvv")
     console.log(err.response.data || err.response.statusText)
     return {}
   })
