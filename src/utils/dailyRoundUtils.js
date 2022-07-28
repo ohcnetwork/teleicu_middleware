@@ -24,7 +24,7 @@ export const getPatientId = async (assetExternalId) => {
     { headers: await generateHeaders(assetExternalId) }
   ).then(res => res.data).catch(err => {
     console.log("[Daily Round] vvv")
-    console.log(err.response.data || err.response.statusText)
+    console.log(err)
     return {}
   })
 }

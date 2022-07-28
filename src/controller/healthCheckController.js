@@ -41,6 +41,7 @@ export const CareCommunicationCheckController = async (req, res, next) => {
   ).then(res => {
     return res.data
   }).catch(error => {
+    console.log(error)
     res.status(500)
     return { "error": error.response.data }
   })

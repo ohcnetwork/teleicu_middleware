@@ -16,8 +16,8 @@ var activeDevices = [];
 var lastRequestData = {};
 var logData = [];
 
-// start updating after 5 minutes of starting the middleware
-let lastUpdatedToCare = new Date() - (55 * 60 * 1000)
+// start updating after 2 minutes of starting the middleware
+let lastUpdatedToCare = new Date() - (58 * 60 * 1000)
 
 const DEFAULT_LISTING_LIMIT = 10;
 
