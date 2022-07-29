@@ -9,7 +9,7 @@ import { careApi } from "../utils/configs.js";
 import dayjs from "dayjs";
 import { generateHeaders } from "../utils/assetUtils.js";
 
-const DAILY_ROUND_TAG = "[Daily Round] "
+const dailyRoundTag = () => new Date() + " [Daily Round] "
 
 var staticObservations = [];
 var activeDevices = [];
@@ -17,7 +17,7 @@ var lastRequestData = {};
 var logData = [];
 
 // start updating after 2 minutes of starting the middleware
-let lastUpdatedToCare = new Date() - (58 * 60 * 1000)
+let lastUpdatedToCare = new Date() - (59 * 60 * 1000)
 
 const DEFAULT_LISTING_LIMIT = 10;
 
@@ -93,37 +93,39 @@ const getValueFromData = (data) => {
 }
 
 const updateObservationsToCare = async () => {
-  console.log(DAILY_ROUND_TAG + "updateObservationsToCare called")
+  console.log(dailyRoundTag() + "updateObservationsToCare called")
   const now = new Date()
   if (now - lastUpdatedToCare < 3600 * 1000) {
     // only update once per hour
-    console.log(DAILY_ROUND_TAG + "updateObservationsToCare skipped")
+    console.log(dailyRoundTag() + "updateObservationsToCare skipped")
     return
   };
   lastUpdatedToCare = now
 
-  console.log(DAILY_ROUND_TAG + "performing daily round")
+  console.log(dailyRoundTag() + "performing daily round")
   for (const observation of staticObservations) {
     try {
       if (now - observation.last_updated > 3600 * 1000) {
         // skip if older than 1 hour
-        console.log(DAILY_ROUND_TAG + "skipping stale observations for device: " + observation.device_id)
+        console.log(dailyRoundTag() + "skipping stale observations for device: " + observation.device_id)
         continue
       }
 
-      console.log(DAILY_ROUND_TAG + ">> Updating observation for device:", observation.device_id);
+      console.log(dailyRoundTag() + ">> Updating observation for device:", observation.device_id);
 
       const asset = await getAsset(observation.device_id);
       if (asset === null) {
-        console.error(DAILY_ROUND_TAG + "Asset not found for assetIp: ", observation.device_id)
+        console.error(dailyRoundTag() + "Asset not found for assetIp: ", observation.device_id)
         continue
       }
 
       const { consultation_id, patient_id } = await getPatientId(asset.externalId);
       if (!patient_id) {
-        console.error(DAILY_ROUND_TAG + "Patient not found for assetExternalId: ", asset.externalId)
+        console.error(dailyRoundTag() + "Patient not found for assetExternalId: ", asset.externalId)
         continue
       }
+
+      console.error(dailyRoundTag() + "Compiling data for assetIp: ", asset.ipAddress)
 
       const data = observation.observations
 
@@ -154,7 +156,12 @@ const updateObservationsToCare = async () => {
         payload.bp = bp
       }
 
-      console.log(DAILY_ROUND_TAG + "Sending payload:", payload)
+      console.log(dailyRoundTag() + "Compiled Data for " + asset.ipAddress, payload)
+
+      if (!Object.keys(payload).some((k) => payload[k] != null)) {
+        console.error(dailyRoundTag() + "No data to update for assetIp: ", asset.ipAddress)
+        continue
+      }
 
       await axios.post(
         `${careApi}/api/v1/consultation/${consultation_id}/daily_rounds/`,
@@ -162,7 +169,7 @@ const updateObservationsToCare = async () => {
         { headers: await generateHeaders(asset.externalId) }
       ).then(res => {
         console.log(res.data)
-        console.log(DAILY_ROUND_TAG + "Updated observation for device:", observation.device_id);
+        console.log(dailyRoundTag() + "Updated observation for device:", observation.device_id);
         return res
       }).catch(err => {
         console.log(err.response.data || err.response.statusText)
@@ -171,10 +178,10 @@ const updateObservationsToCare = async () => {
       })
 
     } catch (error) {
-      console.error(DAILY_ROUND_TAG + "Error updating observations to care", error)
+      console.error(dailyRoundTag() + "Error updating observations to care", error)
     }
   }
-  console.log(DAILY_ROUND_TAG + "daily round finished")
+  console.log(dailyRoundTag() + "daily round finished")
 }
 
 export class ObservationController {
