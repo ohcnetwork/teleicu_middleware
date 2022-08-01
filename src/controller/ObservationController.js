@@ -9,14 +9,14 @@ import { careApi } from "../utils/configs.js";
 import dayjs from "dayjs";
 import { generateHeaders } from "../utils/assetUtils.js";
 
-const dailyRoundTag = () => new Date() + " [Daily Round] "
+const dailyRoundTag = () => new Date().toISOString() + " [Daily Round] "
 
 var staticObservations = [];
 var activeDevices = [];
 var lastRequestData = {};
 var logData = [];
 
-// start updating after 2 minutes of starting the middleware
+// start updating after 1 minutes of starting the middleware
 let lastUpdatedToCare = new Date() - (59 * 60 * 1000)
 
 const DEFAULT_LISTING_LIMIT = 10;
@@ -129,39 +129,60 @@ const updateObservationsToCare = async () => {
 
       const data = observation.observations
 
-      const bp = (data["SpO2"]?.[0]?.status === "final") ? {
-        systolic: data["SpO2"]?.[0]?.systolic?.value ?? null,
-        diastolic: data["SpO2"]?.[0]?.diastolic?.value ?? null,
-      } : null
+      const rawValues = {
+        taken_at: observation.last_updated,
+        spo2: data["SpO2"]?.[0]?.value,
+        resp: data["respiratory-rate"]?.[0]?.value,
+        pulse: data["heart-rate"]?.[0]?.value,
+        temperature: data["body-temperature1"]?.[0]?.value,
+        temperature_measured_at: dayjs(data["body-temperature1"]?.[0]?.["date-time"], "YYYY-MM-DD HH:mm:ss").toISOString(),
+        bp: {
+          systolic: data["blood-pressure"]?.[0]?.systolic?.value,
+          diastolic: data["blood-pressure"]?.[0]?.diastolic?.value
+        }
+      }
+
+      const bp = (data["blood-pressure"]?.[0]?.status === "final") ? {
+        systolic: data["blood-pressure"]?.[0]?.systolic?.value ?? null,
+        diastolic: data["blood-pressure"]?.[0]?.diastolic?.value ?? null,
+      } : {}
 
       const temp = data["body-temperature1"]?.[0]
       let temperature = getValueFromData(temp)
       let temperature_measured_at = null
       if (temp?.["low-limit"] < temperature && temperature < temp?.["high-limit"]) {
-        temperature_measured_at = dayjs(temp?.["date-time"], "YYYY-MM-DD HH:mm:ss").toISOString()
+        temperature_measured_at = rawValues.temperature_measured_at
       } else {
         temperature = null
       }
 
       const payload = {
-        taken_at: observation.last_updated,
-        rounds_type: "NORMAL",
         spo2: getValueFromData(data["SpO2"]?.[0]),
         resp: getValueFromData(data["respiratory-rate"]?.[0]),
         pulse: getValueFromData(data["heart-rate"]?.[0]),
         temperature,
-        temperature_measured_at
-      }
-      if (bp !== null && bp.systolic !== null && bp.diastolic !== null) {
-        payload.bp = bp
+        temperature_measured_at,
+        bp
       }
 
-      console.log(dailyRoundTag() + "Compiled Data for " + asset.ipAddress, payload)
+      console.log(dailyRoundTag() + "Data compiled for" + asset.ipAddress)
+      console.table(rawValues)
+      console.table(payload)
 
-      if (!Object.keys(payload).some((k) => payload[k] != null)) {
+      if (!Object.keys(payload).some((k) => {
+        let val = payload[k]
+        if (typeof val === "object") {
+          return Object.keys(val).length != 0
+        } else{
+          return val != null
+        }
+      })) {
         console.error(dailyRoundTag() + "No data to update for assetIp: ", asset.ipAddress)
         continue
       }
+
+      payload.taken_at = observation.last_updated
+      payload.round_type = "NORMAL"
 
       await axios.post(
         `${careApi}/api/v1/consultation/${consultation_id}/daily_rounds/`,
