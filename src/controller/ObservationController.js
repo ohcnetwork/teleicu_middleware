@@ -19,6 +19,7 @@ var logData = [];
 // start updating after 1 minutes of starting the middleware
 let lastUpdatedToCare = new Date() - (59 * 60 * 1000)
 
+const UPDATE_INTERVAL = 60 * 60 * 1000 // 1 hour
 const DEFAULT_LISTING_LIMIT = 10;
 
 const flattenObservations = (observations) => {
@@ -85,47 +86,47 @@ const addLogData = (newData) => {
   ];
 };
 
-const getValueFromData = (data) => {
-  if (data?.status === "final") {
-    return data?.value ?? null
-  }
-  return null
-}
-
 const updateObservationsToCare = async () => {
-  console.log(dailyRoundTag() + "updateObservationsToCare called")
+  // console.log(dailyRoundTag() + "updateObservationsToCare called")
   const now = new Date()
-  if (now - lastUpdatedToCare < 3600 * 1000) {
+  if (now - lastUpdatedToCare < UPDATE_INTERVAL) {
     // only update once per hour
-    console.log(dailyRoundTag() + "updateObservationsToCare skipped")
+    // console.log(dailyRoundTag() + "updateObservationsToCare skipped")
     return
   };
   lastUpdatedToCare = now
 
+  const getValueFromData = (data) => {
+    const stale = now - dayjs(data?.["date-time"], "YYYY-MM-DD HH:mm:ss") < UPDATE_INTERVAL
+    if (data?.status === "final" && !stale) {
+      return data?.value ?? null
+    }
+    return null
+  }
+
   console.log(dailyRoundTag() + "performing daily round")
   for (const observation of staticObservations) {
     try {
-      if (now - observation.last_updated > 3600 * 1000) {
-        // skip if older than 1 hour
+      if (now - observation.last_updated > UPDATE_INTERVAL) {
         console.log(dailyRoundTag() + "skipping stale observations for device: " + observation.device_id)
         continue
       }
 
-      console.log(dailyRoundTag() + ">> Updating observation for device:", observation.device_id);
+      console.log(dailyRoundTag() + ">> Updating observation for device:" + observation.device_id);
 
       const asset = await getAsset(observation.device_id);
       if (asset === null) {
-        console.error(dailyRoundTag() + "Asset not found for assetIp: ", observation.device_id)
+        console.error(dailyRoundTag() + "Asset not found for assetIp: " + observation.device_id)
         continue
       }
 
       const { consultation_id, patient_id } = await getPatientId(asset.externalId);
       if (!patient_id) {
-        console.error(dailyRoundTag() + "Patient not found for assetExternalId: ", asset.externalId)
+        console.error(dailyRoundTag() + "Patient not found for assetExternalId: " + asset.externalId)
         continue
       }
 
-      console.error(dailyRoundTag() + "Compiling data for assetIp: ", asset.ipAddress)
+      console.error(dailyRoundTag() + "Compiling data for assetIp: " + asset.ipAddress)
 
       const data = observation.observations
 
@@ -142,18 +143,26 @@ const updateObservationsToCare = async () => {
         }
       }
 
-      const bp = (data["blood-pressure"]?.[0]?.status === "final") ? {
-        systolic: data["blood-pressure"]?.[0]?.systolic?.value ?? null,
-        diastolic: data["blood-pressure"]?.[0]?.diastolic?.value ?? null,
-      } : {}
-
-      const temp = data["body-temperature1"]?.[0]
-      let temperature = getValueFromData(temp)
+      // additional check to see if temperature is within range
+      let temperature = getValueFromData(data["body-temperature1"]?.[0])
       let temperature_measured_at = null
-      if (temp?.["low-limit"] < temperature && temperature < temp?.["high-limit"]) {
+      if (
+        data["body-temperature1"]?.[0]?.["low-limit"] < temperature
+        && temperature < data["body-temperature1"]?.[0]?.["high-limit"]
+      ) {
         temperature_measured_at = rawValues.temperature_measured_at
       } else {
         temperature = null
+      }
+
+      // populate blood-pressure object if data is valid
+      const bp = {}
+      if (
+        data["blood-pressure"]?.[0]?.status === "final"
+        && now - dayjs(data["blood-pressure"]?.[0]?.["date-time"], "YYYY-MM-DD HH:mm:ss") < UPDATE_INTERVAL
+      ) {
+        bp.systolic = data["blood-pressure"]?.[0]?.systolic?.value ?? null
+        bp.diastolic = data["blood-pressure"]?.[0]?.diastolic?.value ?? null
       }
 
       const payload = {
@@ -165,32 +174,33 @@ const updateObservationsToCare = async () => {
         bp
       }
 
-      console.log(dailyRoundTag() + "Data compiled for" + asset.ipAddress)
+      console.log(dailyRoundTag() + "Data compiled for " + asset.ipAddress)
       console.table(rawValues)
       console.table(payload)
 
+      //check if there is any data to update
       if (!Object.keys(payload).some((k) => {
         let val = payload[k]
         if (typeof val === "object") {
           return Object.keys(val).length != 0
-        } else{
+        } else {
           return val != null
         }
       })) {
-        console.error(dailyRoundTag() + "No data to update for assetIp: ", asset.ipAddress)
+        console.error(dailyRoundTag() + "No data to update for assetIp: " + asset.ipAddress)
         continue
       }
 
       payload.taken_at = observation.last_updated
-      payload.round_type = "NORMAL"
+      payload.round_type = "AUTOMATED"
 
-      await axios.post(
+      axios.post(
         `${careApi}/api/v1/consultation/${consultation_id}/daily_rounds/`,
         payload,
         { headers: await generateHeaders(asset.externalId) }
       ).then(res => {
         console.log(res.data)
-        console.log(dailyRoundTag() + "Updated observation for device:", observation.device_id);
+        console.log(dailyRoundTag() + "Updated observation for device: " + asset.ipAddress);
         return res
       }).catch(err => {
         console.log(err.response.data || err.response.statusText)
@@ -199,7 +209,7 @@ const updateObservationsToCare = async () => {
       })
 
     } catch (error) {
-      console.error(dailyRoundTag() + "Error updating observations to care", error)
+      console.error(dailyRoundTag() + "Error updating observations to care " + error)
     }
   }
   console.log(dailyRoundTag() + "daily round finished")
