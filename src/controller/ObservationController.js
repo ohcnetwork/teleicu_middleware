@@ -105,11 +105,11 @@ const updateObservationsToCare = async () => {
     return null
   }
 
-  console.log(dailyRoundTag() + "performing daily round")
+  console.log(dailyRoundTag() + "Performing daily round")
   for (const observation of staticObservations) {
     try {
       if (now - observation.last_updated > UPDATE_INTERVAL) {
-        console.log(dailyRoundTag() + "skipping stale observations for device: " + observation.device_id)
+        console.log(dailyRoundTag() + "Skipping stale observations for device: " + observation.device_id)
         continue
       }
 
@@ -225,15 +225,15 @@ const updateObservationsToCare = async () => {
           })
         }
         console.log(err.response?.data || err.response?.statusText)
-        console.log(`Error performing daily round for assetIp: ${asset.ipAddress}`)
+        console.error(dailyRoundTag() + "Error updating observations to care for assetIp: " + asset.ipAddress)
         return err.response
       })
 
     } catch (error) {
-      console.error(dailyRoundTag() + "Error updating observations to care " + error)
+      console.error(dailyRoundTag() + "Error performing observations for assetIp: " + observation.device_id)
     }
   }
-  console.log(dailyRoundTag() + "daily round finished")
+  console.log(dailyRoundTag() + "Daily round finished")
 }
 
 export class ObservationController {
