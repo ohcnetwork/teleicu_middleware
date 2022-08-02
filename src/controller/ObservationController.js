@@ -8,6 +8,7 @@ import axios from 'axios'
 import { careApi } from "../utils/configs.js";
 import dayjs from "dayjs";
 import { generateHeaders } from "../utils/assetUtils.js";
+import { prisma } from "@prisma/client";
 
 const dailyRoundTag = () => new Date().toISOString() + " [Daily Round] "
 
@@ -199,11 +200,31 @@ const updateObservationsToCare = async () => {
         payload,
         { headers: await generateHeaders(asset.externalId) }
       ).then(res => {
+        if (!process.env.SKIP_SAVING_DAILY_ROUND) {
+          prisma.dailyRound.create({
+            data: {
+              assetId: asset.id,
+              status: res.statusText,
+              data: JSON.stringify(payload),
+              response: JSON.stringify(res.data)
+            }
+          })
+        }
         console.log(res.data)
         console.log(dailyRoundTag() + "Updated observation for device: " + asset.ipAddress);
         return res
       }).catch(err => {
-        console.log(err.response.data || err.response.statusText)
+        if (!process.env.SKIP_SAVING_DAILY_ROUND) {
+          prisma.dailyRound.create({
+            data: {
+              assetId: asset.id,
+              status: err.response.statusText,
+              data: JSON.stringify(payload),
+              response: JSON.stringify(err.response?.data)
+            }
+          })
+        }
+        console.log(err.response?.data || err.response?.statusText)
         console.log(`Error performing daily round for assetIp: ${asset.ipAddress}`)
         return err.response
       })

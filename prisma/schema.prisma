@@ -25,10 +25,11 @@ model Asset {
 }
 
 model DailyRound {
-  id      Int      @id @default(autoincrement())
-  asset   Asset    @relation(fields: [assetId], references: [id])
-  assetId Int
-  status  String
-  data    String
-  time    DateTime
+  id       Int      @id @default(autoincrement())
+  assetId  Int
+  status   String
+  data     String
+  response String
+  time     DateTime @default(now())
+  asset    Asset    @relation(fields: [assetId], references: [id])
 }
