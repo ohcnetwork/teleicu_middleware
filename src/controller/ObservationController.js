@@ -233,6 +233,7 @@ const updateObservationsToCare = async () => {
 
     } catch (error) {
       console.error(dailyRoundTag() + "Error performing observations for assetIp: " + observation.device_id)
+      console.error(error)
     }
   }
   console.log(dailyRoundTag() + "Daily round finished")
