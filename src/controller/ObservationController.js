@@ -195,7 +195,7 @@ const updateObservationsToCare = async () => {
       }
 
       payload.taken_at = observation.last_updated
-      payload.round_type = "AUTOMATED"
+      payload.rounds_type = "AUTOMATED"
 
       axios.post(
         `${careApi}/api/v1/consultation/${consultation_id}/daily_rounds/`,
