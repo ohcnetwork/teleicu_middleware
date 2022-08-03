@@ -8,7 +8,9 @@ import axios from 'axios'
 import { careApi } from "../utils/configs.js";
 import dayjs from "dayjs";
 import { generateHeaders } from "../utils/assetUtils.js";
-import { prisma } from "@prisma/client";
+import { PrismaClient } from "@prisma/client"
+
+const prisma = new PrismaClient()
 
 const dailyRoundTag = () => new Date().toISOString() + " [Daily Round] "
 
