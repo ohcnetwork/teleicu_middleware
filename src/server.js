@@ -54,7 +54,7 @@ app.use(cors());
 app.options("*", cors());
 app.use(helmet({ contentSecurityPolicy: false }));
 
-app.use(express.json());
+app.use(express.json({limit: '50mb'}));
 app.use(express.urlencoded({ extended: true }));
 // ws.getWss().clients.forEach(i => i.url)
 // logger
