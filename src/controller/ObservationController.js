@@ -168,8 +168,10 @@ const updateObservationsToCare = async () => {
         bp.diastolic = data["blood-pressure"]?.[0]?.diastolic?.value ?? null
       }
 
+      const spo2 = getValueFromData(data["SpO2"]?.[0])
       const payload = {
-        spo2: getValueFromData(data["SpO2"]?.[0]),
+        spo2,
+        ventilator_spo2: spo2,
         resp: getValueFromData(data["respiratory-rate"]?.[0]),
         pulse: getValueFromData(data["heart-rate"]?.[0]),
         temperature,
