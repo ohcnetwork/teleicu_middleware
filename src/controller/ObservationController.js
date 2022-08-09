@@ -100,7 +100,7 @@ const updateObservationsToCare = async () => {
   lastUpdatedToCare = now
 
   const getValueFromData = (data) => {
-    const stale = now - dayjs(data?.["date-time"], "YYYY-MM-DD HH:mm:ss") < UPDATE_INTERVAL
+    const stale = now - (new Date() - new Date(data?.['date-time'].replace(" ", "T").concat("-0700"))) > UPDATE_INTERVAL
     if (data?.status === "final" && !stale) {
       return data?.value ?? null
     }
@@ -162,7 +162,7 @@ const updateObservationsToCare = async () => {
       const bp = {}
       if (
         data["blood-pressure"]?.[0]?.status === "final"
-        && now - dayjs(data["blood-pressure"]?.[0]?.["date-time"], "YYYY-MM-DD HH:mm:ss") < UPDATE_INTERVAL
+        && (new Date() - new Date(data?.['date-time'].replace(" ", "T").concat("-0700"))) > UPDATE_INTERVAL
       ) {
         bp.systolic = data["blood-pressure"]?.[0]?.systolic?.value ?? null
         bp.diastolic = data["blood-pressure"]?.[0]?.diastolic?.value ?? null
