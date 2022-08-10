@@ -162,7 +162,7 @@ const updateObservationsToCare = async () => {
       const bp = {}
       if (
         data["blood-pressure"]?.[0]?.status === "final"
-        && (new Date() - new Date(data?.['date-time'].replace(" ", "T").concat("-0700"))) > UPDATE_INTERVAL
+        && (new Date() - new Date(data?.["blood-pressure"]?.[0]?.["date-time"].replace(" ", "T").concat("-0700"))) > UPDATE_INTERVAL
       ) {
         bp.systolic = data["blood-pressure"]?.[0]?.systolic?.value ?? null
         bp.diastolic = data["blood-pressure"]?.[0]?.diastolic?.value ?? null
