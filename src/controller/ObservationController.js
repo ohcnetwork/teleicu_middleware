@@ -22,6 +22,8 @@ var lastRequestData = {};
 var logData = [];
 
 // start updating after 1 minutes of starting the middleware
+// let lastUpdatedToCare = new Date() - 59 * 60 * 1000;
+// For testing purposes, setting
 let lastUpdatedToCare = new Date() - 59 * 60 * 1000;
 
 // Update Interval is set to 1 hour
@@ -211,7 +213,9 @@ const updateObservationsToCare = async () => {
         spo2,
         ventilator_spo2: spo2,
         resp: getValueFromData(data["respiratory-rate"]?.[0]),
-        pulse: getValueFromData(data["heart-rate"]?.[0]),
+        pulse:
+          getValueFromData(data["heart-rate"]?.[0]) ??
+          getValueFromData(data["pulse-rate"]?.[0]),
         temperature,
         temperature_measured_at,
         bp,
@@ -223,8 +227,7 @@ const updateObservationsToCare = async () => {
 
       //check if there is any data to update
       if (
-        !Object.keys(payload).some((k) => {
-          let val = payload[k];
+        !Object.keys(payload).some((val) => {
           if (typeof val === "object") {
             return Object.keys(val).length != 0;
           } else {
