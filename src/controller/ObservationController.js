@@ -22,14 +22,14 @@ var lastRequestData = {};
 var logData = [];
 
 // start updating after 1 minutes of starting the middleware
-// let lastUpdatedToCare = new Date() - 59 * 60 * 1000;
+let lastUpdatedToCare = new Date() - 59 * 60 * 1000;
 // For testing purposes, setting
-let lastUpdatedToCare = new Date() - 4 * 60 * 1000;
+// let lastUpdatedToCare = new Date() - (4 * 60 * 1000 + 50 * 1000);
 
 // Update Interval is set to 1 hour
-// const UPDATE_INTERVAL = 60 * 60 * 1000;
+const UPDATE_INTERVAL = 60 * 60 * 1000;
 // For testing purposes, set update interval to 5 minutes
-const UPDATE_INTERVAL = 5 * 60 * 1000;
+// const UPDATE_INTERVAL = 5 * 60 * 1000;
 const DEFAULT_LISTING_LIMIT = 10;
 
 const flattenObservations = (observations) => {
@@ -43,13 +43,13 @@ const flattenObservations = (observations) => {
 };
 
 const addObservation = (observation) => {
-  console.log(
-    observation["date-time"],
-    ": ",
-    observation.device_id,
-    "|",
-    observation.observation_id
-  );
+  // console.log(
+  //   observation["date-time"],
+  //   ": ",
+  //   observation.device_id,
+  //   "|",
+  //   observation.observation_id
+  // );
   if (activeDevices.includes(observation.device_id)) {
     staticObservations = staticObservations.map((item) => {
       if (item.device_id === observation.device_id) {
@@ -107,15 +107,35 @@ const updateObservationsToCare = async () => {
   lastUpdatedToCare = now;
 
   const getValueFromData = (data) => {
-    const stale =
-      now -
-        (new Date() -
-          new Date(data?.["date-time"].replace(" ", "T").concat("-0700"))) >
-      UPDATE_INTERVAL;
-    if (isValid && !stale) {
+    let getTime = (date) => new Date(date.replace(" ", "T").concat("+0530"));
+    const observationDate = getTime(data?.["date-time"]);
+    const stale = now - observationDate > UPDATE_INTERVAL;
+
+    const validData = isValid(data);
+    console.log(data);
+    if (!validData) {
+      console.log(
+        dailyRoundTag() + "Data Not Valid",
+        data["observation_id"],
+        "|",
+        data.status,
+        "|",
+        data.value
+      );
+      return null;
+    } else if (stale) {
+      console.log(
+        dailyRoundTag() + "Data Stale",
+        data["observation_id"],
+        "|",
+        observationDate.toISOString(),
+        "|",
+        new Date().toISOString()
+      );
+      return null;
+    } else {
       return data?.value ?? null;
     }
-    return null;
   };
 
   console.log(dailyRoundTag() + "Performing daily round");
@@ -179,10 +199,13 @@ const updateObservationsToCare = async () => {
           diastolic: data["blood-pressure"]?.[0]?.diastolic?.value,
         },
       };
+      console.log("Building Payload");
 
       // additional check to see if temperature is within range
       let temperature = getValueFromData(data["body-temperature1"]?.[0]);
       let temperature_measured_at = null;
+      // const temperature_low_limit = data["body-temperature1"]?.[0]?.["low-limit"];
+      // const temperature_high_limit = data["body-temperature1"]?.[0]?.["high-limit"];
       if (
         data["body-temperature1"]?.[0]?.["low-limit"] < temperature &&
         temperature < data["body-temperature1"]?.[0]?.["high-limit"]
