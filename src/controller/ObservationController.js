@@ -24,7 +24,10 @@ var logData = [];
 // start updating after 1 minutes of starting the middleware
 let lastUpdatedToCare = new Date() - 59 * 60 * 1000;
 
-const UPDATE_INTERVAL = 60 * 60 * 1000; // 1 hour
+// Update Interval is set to 1 hour
+// const UPDATE_INTERVAL = 60 * 60 * 1000;
+// For testing purposes, set update interval to 5 minutes
+const UPDATE_INTERVAL = 5 * 60 * 1000;
 const DEFAULT_LISTING_LIMIT = 10;
 
 const flattenObservations = (observations) => {
