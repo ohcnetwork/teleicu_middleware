@@ -225,21 +225,21 @@ const updateObservationsToCare = async () => {
       console.table(rawValues);
       console.table(payload);
 
-      //check if there is any data to update
-      if (
-        !Object.entries(payload).some(([key, val]) => {
-          if (val === null) {
-            console.log(key, " | null Value");
+      const payloadHasData = (payload) =>
+        Object.entries(payload).some(([key, value]) => {
+          if (value === null || value === undefined) {
+            console.log(key, " | Value ", value);
             return false;
-          } else if (typeof val === "object") {
+          } else if (typeof value === "object") {
             console.log(key, " | Object | ", val);
-            return Object.keys(val).length != 0;
-          } else {
-            console.log(key, " | Value | ", val);
-            return val != null;
+            return payloadHasData(value);
           }
-        })
-      ) {
+          console.log(key, " | Value | ", val);
+          return true;
+        });
+
+      //check if there is any data to update
+      if (!payloadHasData(payload)) {
         console.error(
           dailyRoundTag() + "No data to update for assetIp: " + asset.ipAddress
         );
