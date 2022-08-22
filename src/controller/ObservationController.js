@@ -163,7 +163,7 @@ const updateObservationsToCare = async () => {
         taken_at: observation.last_updated,
         spo2: data["SpO2"]?.[0]?.value,
         resp: data["respiratory-rate"]?.[0]?.value,
-        pulse: data["heart-rate"]?.[0]?.value,
+        pulse: data["heart-rate"]?.[0]?.value ?? data["pulse-rate"]?.[0]?.value,
         temperature: data["body-temperature1"]?.[0]?.value,
         temperature_measured_at: dayjs(
           data["body-temperature1"]?.[0]?.["date-time"],
