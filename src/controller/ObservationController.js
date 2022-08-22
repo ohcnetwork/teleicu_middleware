@@ -229,8 +229,10 @@ const updateObservationsToCare = async () => {
       if (
         !Object.values(payload).some((val) => {
           if (typeof val === "object") {
+            console.log("Object", val);
             return Object.keys(val).length != 0;
           } else {
+            console.log("Value", val);
             return val != null;
           }
         })
