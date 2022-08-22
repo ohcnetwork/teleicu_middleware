@@ -239,6 +239,12 @@ const updateObservationsToCare = async () => {
         });
 
       //check if there is any data to update
+      console.log(
+        "Attempt to update data for asset: ",
+        asset.ipAddress,
+        "with payload: ",
+        payload
+      );
       if (!payloadHasData(payload)) {
         console.error(
           dailyRoundTag() + "No data to update for assetIp: " + asset.ipAddress
