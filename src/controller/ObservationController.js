@@ -231,10 +231,10 @@ const updateObservationsToCare = async () => {
             console.log(key, " | Value ", value);
             return false;
           } else if (typeof value === "object") {
-            console.log(key, " | Object | ", val);
+            console.log(key, " | Object | ", value);
             return payloadHasData(value);
           }
-          console.log(key, " | Value | ", val);
+          console.log(key, " | Value | ", value);
           return true;
         });
 
