@@ -24,7 +24,7 @@ var logData = [];
 // start updating after 1 minutes of starting the middleware
 // let lastUpdatedToCare = new Date() - 59 * 60 * 1000;
 // For testing purposes, setting
-let lastUpdatedToCare = new Date() - 59 * 60 * 1000;
+let lastUpdatedToCare = new Date() - 4 * 60 * 1000;
 
 // Update Interval is set to 1 hour
 // const UPDATE_INTERVAL = 60 * 60 * 1000;
