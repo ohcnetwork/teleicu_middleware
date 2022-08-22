@@ -227,12 +227,15 @@ const updateObservationsToCare = async () => {
 
       //check if there is any data to update
       if (
-        !Object.values(payload).some((val) => {
-          if (typeof val === "object") {
-            console.log("Object", val);
+        !Object.entries(payload).some(([key, val]) => {
+          if (val === null) {
+            console.log(key, " | null Value");
+            return false;
+          } else if (typeof val === "object") {
+            console.log(key, " | Object | ", val);
             return Object.keys(val).length != 0;
           } else {
-            console.log("Value", val);
+            console.log(key, " | Value | ", val);
             return val != null;
           }
         })
