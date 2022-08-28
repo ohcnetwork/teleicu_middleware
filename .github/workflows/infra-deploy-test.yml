@@ -11,7 +11,7 @@ env:
   IMAGE_NAME: teleicu_middleware
 
 jobs:
-          
+        
   deploy-mn-jnims:
     name: Deploy Infra
     if: github.ref == 'refs/heads/develop'
