@@ -24,7 +24,10 @@ jobs:
       - name: Run script file
         run: |
           echo $USER
-          echo ${{ secrets.ENV_FILE }} > /teleicu/file
+          echo "$ENV_FILE" > /teleicu/file
           pwd
           ls
         shell: bash
+        env:
+          SSH_KEY: ${{ secrets.ENV_FILE }}
+       
