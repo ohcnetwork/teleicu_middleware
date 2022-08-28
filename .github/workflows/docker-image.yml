@@ -2,6 +2,8 @@ name: Docker Image CI
 
 on:
   push:
+    paths-ignore:
+      - '.github/**'
     branches:
       - develop
       - master
