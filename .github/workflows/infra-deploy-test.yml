@@ -23,7 +23,8 @@ jobs:
 
       - name: Run script file
         run: |
-           sudo echo ${{ secrets.ENV_FILE }} > /teleicu/file
-           pwd
-           ls
+          echo $USER
+          sudo echo ${{ secrets.ENV_FILE }} > /teleicu/file
+          pwd
+          ls
         shell: bash
