@@ -29,5 +29,5 @@ jobs:
           ls
         shell: bash
         env:
-          SSH_KEY: ${{ secrets.ENV_FILE }}
+          ENV_FILE: ${{ secrets.ENV_FILE }}
        
