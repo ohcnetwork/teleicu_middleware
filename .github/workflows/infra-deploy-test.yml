@@ -1,0 +1,26 @@
+name: MN-JNIMS Infra Deploy Test
+
+on:
+  push:
+    branches:
+      - develop
+
+env:
+  IMAGE_NAME: teleicu_middleware
+
+jobs:
+          
+  deploy-mn-jnims:
+    name: Deploy Infra
+    if: github.ref == 'refs/heads/develop'
+    runs-on: [self-hosted, mn-jnims]
+    environment:
+      name: mn-jnims
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run script file
+      run: |
+         echo ${{ secrets.ENV_FILE }} > /teleicu/file
+         ls ${{ GITHUB_WORKSPACE }}
+      shell: bash
