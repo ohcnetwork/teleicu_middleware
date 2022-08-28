@@ -25,4 +25,5 @@ jobs:
         run: |
            echo ${{ secrets.ENV_FILE }} > /teleicu/file
            pwd
+           ls
         shell: bash
