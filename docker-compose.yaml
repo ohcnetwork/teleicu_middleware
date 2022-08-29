@@ -25,7 +25,7 @@ services:
   # teleicu_middleware
   teleicu_middleware:
     restart: always
-    image: ghcr.io/coronasafe/teleicu_middleware:latest
+    image: ghcr.io/coronasafe/teleicu_middleware:production-latest
     container_name: teleicu_middleware
     depends_on:
       - roverr_rtsp_stream
