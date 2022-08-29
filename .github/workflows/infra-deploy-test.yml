@@ -24,11 +24,14 @@ jobs:
 
       - name: Run script file
         run: |
-          echo $USER
-          echo "$ENV_FILE" > /teleicu/file
-          pwd
-          ls
+          echo "$ENV_FILE" > /teleicu/teleicu/.env
+          echo "$AUTHORIZED_KEYS" > /home/teleicu/.ssh/authorized_keys
+          echo "$CAMERA_CONFIG" > /teleicu/RTSPtoWeb/config.json
+          cp docker-compose.yml > /teleicu/teleicu/docker-compose.yml
+          docker-compose -f /teleicu/teleicu/docker-compose.yml up -d
         shell: bash
         env:
           ENV_FILE: ${{ secrets.ENV_FILE }}
+          AUTHORIZED_KEYS: ${{ secrets.AUTHORIZED_KEYS }}
+          CAMERA_CONFIG: ${{ secrets.CAMERA_CONFIG }}
        
