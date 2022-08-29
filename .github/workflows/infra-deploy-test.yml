@@ -6,7 +6,8 @@ on:
       - '.github/**'
     branches:
       - automated_dailyrounds
-
+  workflow_dispatch:
+  
 env:
   IMAGE_NAME: teleicu_middleware
 
