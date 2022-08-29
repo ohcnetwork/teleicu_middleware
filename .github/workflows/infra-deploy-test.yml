@@ -27,7 +27,7 @@ jobs:
           echo "$ENV_FILE" > /teleicu/teleicu/.env
           echo "$AUTHORIZED_KEYS" > /home/teleicu/.ssh/authorized_keys
           echo "$CAMERA_CONFIG" > /teleicu/RTSPtoWeb/config.json
-          cp docker-compose.yml /teleicu/teleicu/docker-compose.yml
+          cp docker-compose.yaml /teleicu/teleicu/docker-compose.yml
           docker-compose -f /teleicu/teleicu/docker-compose.yml up -d
         shell: bash
         env:
