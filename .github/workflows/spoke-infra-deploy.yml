@@ -1,0 +1,138 @@
+name: MN-JNIMS Infra Deploy
+
+on:
+  push:
+    paths:
+      - '.github/workflows/spoke-infra-deploy.yml'
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:    
+  deploy-mn-jnims:
+    name: MN JNIMS
+    if: github.ref == 'refs/heads/master'
+    runs-on: [self-hosted, mn-jnims]
+    environment:
+      name: mn-jnims
+      url: https://mn-jnims.coronasafe.xyz
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run script file
+        run: |
+          echo "$ENV_FILE" > /teleicu/teleicu/.env
+          echo "$AUTHORIZED_KEYS" > /home/teleicu/.ssh/authorized_keys
+          echo "$CAMERA_CONFIG" > /teleicu/RTSPtoWeb/config.json
+          cp docker-compose.yaml /teleicu/teleicu/docker-compose.yml
+          docker-compose -f /teleicu/teleicu/docker-compose.yml up -d
+        shell: bash
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+          AUTHORIZED_KEYS: ${{ secrets.AUTHORIZED_KEYS }}
+          CAMERA_CONFIG: ${{ secrets.CAMERA_CONFIG }}    
+  deploy-mn-churachandpur:
+    name: MN Churachadpur
+    if: github.ref == 'refs/heads/master'
+    runs-on: [self-hosted, mn-churachandpur]
+    environment:
+      name: mn-churachandpur
+      url: https://mn-churachandpur.coronasafe.xyz
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run script file
+        run: |
+          echo "$ENV_FILE" > /teleicu/teleicu/.env
+          echo "$AUTHORIZED_KEYS" > /home/teleicu/.ssh/authorized_keys
+          echo "$CAMERA_CONFIG" > /teleicu/RTSPtoWeb/config.json
+          cp docker-compose.yaml /teleicu/teleicu/docker-compose.yml
+          docker-compose -f /teleicu/teleicu/docker-compose.yml up -d
+        shell: bash
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+          AUTHORIZED_KEYS: ${{ secrets.AUTHORIZED_KEYS }}
+          CAMERA_CONFIG: ${{ secrets.CAMERA_CONFIG }}    
+  deploy-mn-tamenglong:
+    name: MN Tamenglong
+    if: github.ref == 'refs/heads/master'
+    runs-on: [self-hosted, mn-tamenglong]
+    environment:
+      name: mn-tamenglong
+      url: https://mn-tamenglong.coronasafe.xyz
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run script file
+        run: |
+          echo "$ENV_FILE" > /teleicu/teleicu/.env
+          echo "$AUTHORIZED_KEYS" > /home/teleicu/.ssh/authorized_keys
+          echo "$CAMERA_CONFIG" > /teleicu/RTSPtoWeb/config.json
+          cp docker-compose.yaml /teleicu/teleicu/docker-compose.yml
+          docker-compose -f /teleicu/teleicu/docker-compose.yml up -d
+        shell: bash
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+          AUTHORIZED_KEYS: ${{ secrets.AUTHORIZED_KEYS }}
+          CAMERA_CONFIG: ${{ secrets.CAMERA_CONFIG }}    
+  deploy-mn-chandel:
+    name: MN Chandel
+    if: github.ref == 'refs/heads/master'
+    runs-on: [self-hosted, mn-chandel]
+    environment:
+      name: mn-chandel
+      url: https://mn-chandel.coronasafe.xyz
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run script file
+        run: |
+          echo "$ENV_FILE" > /teleicu/teleicu/.env
+          echo "$AUTHORIZED_KEYS" > /home/teleicu/.ssh/authorized_keys
+          echo "$CAMERA_CONFIG" > /teleicu/RTSPtoWeb/config.json
+          cp docker-compose.yaml /teleicu/teleicu/docker-compose.yml
+          docker-compose -f /teleicu/teleicu/docker-compose.yml up -d
+        shell: bash
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+          AUTHORIZED_KEYS: ${{ secrets.AUTHORIZED_KEYS }}
+          CAMERA_CONFIG: ${{ secrets.CAMERA_CONFIG }}    
+  deploy-mn-ukhrul:
+    name: MN Ukhrul
+    if: github.ref == 'refs/heads/master'
+    runs-on: [self-hosted, mn-ukhrul]
+    environment:
+      name: mn-ukhrul
+      url: https://mn-ukhrul.coronasafe.xyz
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run script file
+        run: |
+          echo "$ENV_FILE" > /teleicu/teleicu/.env
+          echo "$AUTHORIZED_KEYS" > /home/teleicu/.ssh/authorized_keys
+          echo "$CAMERA_CONFIG" > /teleicu/RTSPtoWeb/config.json
+          cp docker-compose.yaml /teleicu/teleicu/docker-compose.yml
+          docker-compose -f /teleicu/teleicu/docker-compose.yml up -d
+        shell: bash
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+          AUTHORIZED_KEYS: ${{ secrets.AUTHORIZED_KEYS }}
+          CAMERA_CONFIG: ${{ secrets.CAMERA_CONFIG }}    
+  deploy-mn-thoubal:
+    name: MN thoubal
+    if: github.ref == 'refs/heads/master'
+    runs-on: [self-hosted, mn-thoubal]
+    environment:
+      name: mn-thoubal
+      url: https://mn-thoubal.coronasafe.xyz
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run script file
+        run: |
+          echo "$ENV_FILE" > /teleicu/teleicu/.env
+          echo "$AUTHORIZED_KEYS" > /home/teleicu/.ssh/authorized_keys
+          echo "$CAMERA_CONFIG" > /teleicu/RTSPtoWeb/config.json
+          cp docker-compose.yaml /teleicu/teleicu/docker-compose.yml
+          docker-compose -f /teleicu/teleicu/docker-compose.yml up -d
+        shell: bash
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+          AUTHORIZED_KEYS: ${{ secrets.AUTHORIZED_KEYS }}
+          CAMERA_CONFIG: ${{ secrets.CAMERA_CONFIG }}
+       

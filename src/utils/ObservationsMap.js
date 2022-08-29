@@ -16,7 +16,7 @@ export class ObservationsMap {
         this.#observations[key] = newData[key] ?? this.#observations[key];
       });
 
-      console.log("DATA", Object.keys(this.#observations));
+      // console.log("DATA", Object.keys(this.#observations));
     }
   }
 }

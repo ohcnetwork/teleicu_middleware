@@ -1,16 +1,48 @@
-import  {generateJWT} from "../utils/generateJWT.js"
-import  axios from 'axios'
+import axios from 'axios'
+import { PrismaClient } from "@prisma/client"
+import { generateHeaders } from "../utils/assetUtils.js";
+import { careApi } from '../utils/configs.js';
 
-export const CareCommunicationCheckController = async (req, res, next) => {                             
-    const value = await axios
 
-    .get("http://localhost:8000/middleware/verify", {headers: {Authorization: "Bearer "+ await generateJWT({asset_id : "123"}) , "X-Facility-Id": "c153456a-3cb6-44ff-bff0-45475b059928 "}})
-    .then(res => {
-      return res.data
+const prisma = new PrismaClient()
+
+export const CareCommunicationCheckController = async (req, res, next) => {
+  let asset = null
+  if (req.query.ip || req.query.ext_id) {
+    asset = await prisma.asset.findFirst({
+      where: {
+        OR: [
+          { ipAddress: req.query.ip },
+          { externalId: req.query.ext_id }
+        ],
+        AND: {
+          deleted: false
+        }
+      }
     })
-    .catch(error => {
-        return {"error" : "Authorization Failed"}
+  } else {
+    asset = await prisma.asset.findFirst({
+      where: {
+        AND: {
+          deleted: false
+        }
+      }
     })
-    return res.send(value)
-  };
-   
+  }
+  if (asset === null) {
+    return res.status(404).json({ "error": "No active asset found" })
+  }
+
+  const value = await axios.get(
+    `${careApi}/middleware/verify`,
+    {
+      headers: await generateHeaders(asset.externalId)
+    }
+  ).then(res => {
+    return res.data
+  }).catch(error => {
+    res.status(500)
+    return { "error": error?.response?.data }
+  })
+  return res.send(value)
+};

@@ -1,0 +1,63 @@
+version: '3'
+
+services:
+  db:
+    container_name: middleware_db
+    image: postgres
+    restart: always
+    env_file:
+      - ./.env
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  # rtsptoweb:
+  roverr_rtsp_stream:
+    restart: always
+    image: ghcr.io/deepch/rtsptoweb:latest
+    container_name: roverr_rtsp_stream
+    volumes:
+      - /teleicu/RTSPtoWeb/config.json:/config/config.json
+    ports:
+      - "8080:8080"
+
+  # teleicu_middleware
+  teleicu_middleware:
+    restart: always
+    image: ghcr.io/coronasafe/teleicu_middleware:production-latest
+    container_name: teleicu_middleware
+    depends_on:
+      - roverr_rtsp_stream
+    environment:
+      - PORT=8090
+    ports:
+      - "8090:8090"
+
+  # proxies requests to internal services
+  reverse-proxy:
+    restart: always
+    image: ghcr.io/coronasafe/teleicu_nginx/teleicu_nginx:latest
+    container_name: reverse-proxy
+    depends_on:
+      - teleicu_middleware
+    ports:
+      - "8001:8001"
+
+  #watchtower
+  watchtower:
+    restart: always
+    image: containrrr/watchtower
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_DEBUG=true
+      - WATCHTOWER_SCHEDULE=0 * * * * *
+    ports:
+     - "8070:8080"
+
+
+volumes:
+  postgres-data:
