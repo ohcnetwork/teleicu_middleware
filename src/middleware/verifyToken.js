@@ -2,11 +2,11 @@ import jose from "node-jose";
 import jwktopem from "jwk-to-pem";
 import jwt from "jsonwebtoken";
 import axios from "axios";
-import { catchAsync } from "../utils/catchAsync.js";
 
 async function getKeyStore() {
+    console.log(process.env.CARE_API);
     const keyStore = await axios.get(
-        `http://localhost:9000/.well-known/openid-configuration`
+        `${process.env.CARE_API}/.well-known/openid-configuration`
     );
     return JSON.stringify(keyStore.data);
 }
