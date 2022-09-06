@@ -8,7 +8,6 @@ async function getKeyStore() {
     const keyStore = await axios.get(
         `http://localhost:9000/.well-known/openid-configuration`
     );
-    console.log(JSON.stringify(keyStore.data));
     return JSON.stringify(keyStore.data);
 }
 
@@ -16,7 +15,6 @@ async function getPublicKey(jwks) {
     const ks = await getKeyStore();
     const keyStore = await jose.JWK.asKeyStore(ks);
     const publicKey = keyStore.toJSON();
-    console.log("\n\n>>> publicKey: " + publicKey.__dict__);
     return publicKey;
 }
 
