@@ -4,7 +4,6 @@ import jwt from "jsonwebtoken";
 import axios from "axios";
 
 async function getKeyStore() {
-    console.log(process.env.CARE_API);
     const keyStore = await axios.get(
         `${process.env.CARE_API}/.well-known/openid-configuration`
     );
@@ -24,12 +23,19 @@ function getToken(tokenWithBearer) {
     if (bearerRequired !== tokenBearer) {
         throw new Error("Bearer is not authorized");
     }
-    return tokenWithBearer.split(" ")[1];
+    const token = tokenWithBearer.split(" ")[1];
+    if (token === null) {
+        throw new Error("JWT token expected");
+    }
+    return token;
 }
 
 export const verify = async(req, res, next) => {
     try {
         const tokenWithBearer = req.get("Authorization");
+        if (tokenWithBearer === null || tokenWithBearer === "") {
+            throw new Error("Bearer token is expected");
+        }
         const token = getToken(tokenWithBearer);
         const data = await getPublicKey();
         const [firstKey] = data.keys;
