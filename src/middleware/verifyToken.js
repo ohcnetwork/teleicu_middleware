@@ -10,7 +10,7 @@ async function getKeyStore() {
     return JSON.stringify(keyStore.data);
 }
 
-async function getPublicKey(jwks) {
+async function getPublicKey() {
     const ks = await getKeyStore();
     const keyStore = await jose.JWK.asKeyStore(ks);
     const publicKey = keyStore.toJSON();
