@@ -202,6 +202,7 @@ const updateObservationsToCare = async () => {
       console.log("Building Payload");
 
       // additional check to see if temperature is within range
+      console.log(data)
       let temperature = getValueFromData(data["body-temperature1"]?.[0]);
       let temperature_measured_at = null;
       // const temperature_low_limit = data["body-temperature1"]?.[0]?.["low-limit"];
