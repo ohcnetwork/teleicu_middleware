@@ -373,9 +373,10 @@ export class ObservationController {
   }
 
   static getLastRequestTime = async (req, res) => {
-    res.send({
+    const withinLastMinute = dayjs().diff(lastRequestTime, "minute") < 1;
+    const statusCode = withinLastMinute ? 200 : 412; // 412 Precondition Failed ( update_observations has not been called in the last minute )
+    res.status(statusCode).send({
       time: lastRequestTime?.toISOString() ?? null,
-      within_last_minute: dayjs().diff(lastRequestTime, "minute") < 1,
     });
   };
 
