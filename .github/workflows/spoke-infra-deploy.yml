@@ -6,6 +6,7 @@ on:
       - '.github/workflows/spoke-infra-deploy.yml'
     branches:
       - master
+      - runner
   workflow_dispatch:
 
 jobs:    
@@ -134,5 +135,18 @@ jobs:
         env:
           ENV_FILE: ${{ secrets.ENV_FILE }}
           AUTHORIZED_KEYS: ${{ secrets.AUTHORIZED_KEYS }}
-          CAMERA_CONFIG: ${{ secrets.CAMERA_CONFIG }}
+          CAMERA_CONFIG: ${{ secrets.CAMERA_CONFIG }}    
+  deploy-nl-dh-dimapur:
+    name: NL DH Dimapur
+    if: github.ref == 'refs/heads/runner'
+    runs-on: [self-hosted, nl-dh-dimapur]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run script file
+        run: |
+          echo $(hostname -I)
+          sudo systemctl status cloudflared
+          sudo systemctl restart cloudflared
+        shell: bash
+        
        
