@@ -32,7 +32,7 @@ import { getWs } from "./middleware/getWs.js";
 
 import { openidConfigController } from "./controller/OpenidConfig.js";
 
-const PORT = process.env.PORT || 8090;
+const PORT = process.env.PORT || 8091;
 
 const app = express();
 const ws = enableWs(app);
