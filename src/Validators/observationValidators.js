@@ -54,7 +54,7 @@ const baseObservationValidators = [
     .withMessage("status must be string."),
 ];
 
-const getObservationsValidators = (path = "") => [
+ const getObservationsValidators = (path = "") => [
   body(`${path}value"`)
     .optional()
     .isNumeric()
@@ -81,6 +81,22 @@ const getObservationsValidators = (path = "") => [
     .optional()
     .isString()
     .withMessage("interpretation must be string"),
+    body(`${path}value`)
+    .optional()
+    .isNumeric()
+    .withMessage("value must be number.")
+    .custom((value, { req }) => {
+      const lowLimit = req.body[`${path}low-limit`];
+      const highLimit = req.body[`${path}high-limit`];
+      if (lowLimit && highLimit) {
+        if (value < lowLimit || value > highLimit) {
+          throw new Error(
+            `value must be between ${lowLimit} and ${highLimit}.`
+          );
+        }
+      }
+      return true;
+    }),
 ];
 
 export const bloodPressureValidators = [
@@ -91,8 +107,8 @@ export const bloodPressureValidators = [
 ];
 
 export const observationsValidators = [
-  // ...bloodPressureValidators,
-  // ...getObservationsValidators(),
+   //...bloodPressureValidators,
+   //...getObservationsValidators(),
 ];
 
 export const vitalsValidator = [
