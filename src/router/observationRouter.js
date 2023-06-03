@@ -1,11 +1,9 @@
 import express from "express";
 import { ObservationController } from "../controller/ObservationController.js";
-import { ExtractDataController } from "../controller/ExtractDataController.js";
+import { UpdateObservationAutoController } from "../controller/ExtractDataController.js";
 import { validate } from "../middleware/validate.js";
-import { observationsValidators, vitalsValidator } from "../Validators/observationValidators.js";
-import {
-  baseGetCameraParamsValidators,
-} from "../Validators/cameraValidators.js";
+import { observationsValidators, vitalsValidator, autoObservationValidator } from "../Validators/observationValidators.js";
+
 
 const router = express.Router();
 
@@ -31,10 +29,10 @@ router.get("/get_log_data", ObservationController.getLogData);
 
 router.get("/get_last_request_data", ObservationController.getLastRequestData);
 
-router.get(
+router.post(
   "/update_observation_auto",
-  validate(baseGetCameraParamsValidators),
-  ExtractDataController.extractData
+  validate(autoObservationValidator),
+  UpdateObservationAutoController.updateObservation
 );
 
 export { router as observationRouter };

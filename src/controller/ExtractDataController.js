@@ -6,15 +6,108 @@ import axios  from 'axios';
 import path from "path";
 import fs from 'fs';
 import FormData from 'form-data';
+import { getPatientId } from "../utils/dailyRoundUtils.js";
+import { careApi } from "../utils/configs.js";
+import { generateHeaders } from "../utils/assetUtils.js";
 
 import * as dotenv from "dotenv";
+
 dotenv.config({ path: "./.env" });
 
 const MONITOR_PRESET_NAME = "5 Para";
 
 const OCR_URL = process.env.OCR_URL;
 
-export class ExtractDataController {
+const celsiusToFahrenheit = (celsius)=> {
+    celsius = parseFloat(celsius)
+    const fahrenheit = (celsius * 9/5) + 32;
+    return fahrenheit;
+}
+
+const validator = (value, parser, minvalue, maxValue)=>{
+
+    if(isNaN(value))
+    {
+        return null
+    }
+
+    value = parser(value)
+
+    return value >=minvalue && value <=maxValue ? value : null
+}
+const getSanitizedData = (data)=>{
+
+    console.log(data)
+
+    const sanitizedData = {}
+    sanitizedData["spo2"] = !isNaN(data?.["SpO2"]) ? parseFloat(data?.["SpO2"]): null
+
+    sanitizedData["ventilator_spo2"] = validator(sanitizedData.spo2, parseInt, 0, 100)
+    
+    sanitizedData["resp"] = validator(data?.["Respiratory Rate"], parseInt, 10, 70)
+
+    sanitizedData["pulse"] = validator(data?.["Pulse Rate"], parseInt, 0, 100)
+
+    sanitizedData["temperature"] = validator(data?.["Temperature"], celsiusToFahrenheit, 95, 106)
+    
+    
+    sanitizedData["bp"] = !isNaN(data?.["Blood Pressure"]) ? 
+    {
+        "systolic": parseFloat(data?.["Blood Pressure"]),
+        "mean": parseFloat(data?.["Blood Pressure"]),
+        "diastolic": parseFloat(data?.["Blood Pressure"])
+    } : null
+
+    return Object.entries(sanitizedData).reduce((acc, [key, value]) => {
+        if (value !== null) {
+            acc[key] = value;
+        }
+        return acc;
+    }, {});
+
+
+}
+
+const extractData = async (camParams)=>{
+
+    // get all presets for a camera
+    const presets = await CameraUtils.getPreset({ camParams });
+    // // get 5 para preset value 
+    const cameraViewPreset = presets[MONITOR_PRESET_NAME];
+
+    // // move camera to 5 para preset
+    await CameraUtils.gotoPreset({ camParams, cameraViewPreset })
+
+    const snapshotUrl = await CameraUtils.getSnapshotUri({ camParams });
+
+    const fileName = "image-" + new Date().getTime() + ".jpeg"
+    const imagePath = path.resolve("images", fileName)
+    await downloadImage(snapshotUrl.uri, imagePath, camParams.username, camParams.password)
+    // const testImg = path.resolve("images", "test.png")
+
+    // POST request with image to ocr
+    const bodyFormData = new FormData();
+    bodyFormData.append('image', fs.createReadStream(imagePath));
+
+    const response = await axios.post(OCR_URL, bodyFormData, {
+        headers: {
+            ...bodyFormData.getHeaders()
+        }
+    })
+
+    // delete image
+    fs.unlink(imagePath, (err) => {
+        if (err) {
+            // TODO: Critical logger setup
+            console.error(err)
+        }
+    })
+
+    return getSanitizedData(response.data.data)
+
+}
+
+export class UpdateObservationAutoController {
     // get camera params
     static _getCamParams = (body) => {
         const { hostname, username, password, port } = body;
@@ -30,90 +123,81 @@ export class ExtractDataController {
         return camParams;
     };
 
-    /**
+  /**
    * @swagger
    * /update_observation_auto:
-   *   get:
-   *     summary: "Extract 5 para monitor readings"
+   *   post:
+   *     summary: "Auto update observation"
    *     description: ""
    *     tags:
-   *       - extract_data
-    *     parameters:
-   *       - name: hostname
-   *         in: query
-   *         required: true
-   *         schema:
-   *           type: string
-   *       - name: username
-   *         in: query
-   *         required: true
-   *         schema:
-   *           type: string
-   *       - name: password
-   *         in: query
-   *         required: true
-   *         schema:
-   *           type: string
-   *       - name: port
-   *         in: query
-   *         required: true
-   *         schema:
-   *           type: string
+   *       - Observations
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               hostname:
+   *                 type: string
+   *                 required: true
+   *               username:
+   *                 type: string
+   *                 required: true
+   *               password:
+   *                 type: string
+   *                 required: true
+   *               port:
+   *                 type: integer
+   *                 required: true
+   *               assetExternalId:
+   *                 type: string
+   *                 required: true
    *     responses:
    *       "200":
-   *         description: Return all available presets
+   *         description: Return success message
    */
-    static extractData = catchAsync(async (req, res) => {
+    static updateObservation = catchAsync(async (req, res) => {
 
-        // get camera params
-        const camParams = this._getCamParams(req.query);
+        const assetExternalId = req.body.assetExternalId
 
-        // get all presets for a camera
-        const presets = await CameraUtils.getPreset({ camParams });
-
-
-        // get 5 para preset value 
-        const cameraViewPreset = presets[MONITOR_PRESET_NAME];
-
-        // move camera to 5 para preset
-        await CameraUtils.gotoPreset({ camParams, cameraViewPreset })
-
-        // get snapshot url
-        const snapshotUrl = await CameraUtils.getSnapshotUri({ camParams });
-
-        // download image from snapshot url
-        const fileName = "image-" + new Date().getTime() + ".jpeg"
-        const imagePath = path.resolve("images", fileName)
-        const testImg = path.resolve("images", "test.png")
-        await downloadImage(snapshotUrl.uri, imagePath, camParams.username, camParams.password)
-
-        // POST request with image to ocr
-        const bodyFormData = new FormData();
-        bodyFormData.append('image', fs.createReadStream(testImg));
-
-        const response = await axios.post(OCR_URL, bodyFormData, {
-            headers: {
-                ...bodyFormData.getHeaders()
+        try{
+            const { consultation_id, patient_id } = await getPatientId(assetExternalId);
+            if (!patient_id) {
+                console.error(
+                    "Patient not found for assetExternalId: " +
+                    assetExternalId
+                );
+                res.send({
+                status: "error",
+                message: "Failed",
+                });
             }
-        })
 
-        console.log(response.data)
+            const payload = await extractData(this._getCamParams(req.body))
 
-        // delete image
-        // fs.unlink(imagePath, (err) => {
-        //     if (err) {
-        //         // TODO: Critical logger setup
-        //         console.error(err)
-        //     }
-        // })
+            console.log(payload)
 
-        res.send({
-        status: "success",
-        message: `Done`,
-        });
+            await axios
+            .post(
+            `${careApi}/api/v1/consultation/${consultation_id}/daily_rounds/`,
+            payload,
+            { headers: await generateHeaders(assetExternalId) }
+            )
 
-
+            res.send({
+            status: "success",
+            message: `Done`,
+            });
         
+        }
+        catch(error){
+            console.error(error)
+
+            res.send({
+            status: "error",
+            message: "Failed",
+            });
+        }
     });
 
 
