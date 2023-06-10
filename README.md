@@ -20,6 +20,6 @@ $ npm run dev
 
 ## Documentation
 
-Swagger documentation - [http://localhost:8090/docs/](http://localhost:8090/docs/)
-Setting up middleware - [Middleware Deployment](https://docs.coronasafe.network/care-software-deployment/hospital-server-setup/introduction)
-Adding a Camera Feed  - [Camera Integration](https://docs.coronasafe.network/care-software-deployment/hospital-server-setup/camera-integration)
+Swagger documentation - [http://localhost:8090/docs/](http://localhost:8090/docs/)  
+Setting up middleware - [Middleware Deployment](https://docs.coronasafe.network/care-software-deployment/hospital-server-setup/introduction)  
+Adding a Camera Feed  - [Camera Integration](https://docs.coronasafe.network/care-software-deployment/hospital-server-setup/camera-integration)  
