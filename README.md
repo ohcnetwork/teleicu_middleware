@@ -20,4 +20,6 @@ $ npm run dev
 
 ## Documentation
 
-You can find swagger documentation at [http://localhost:8090/docs/](http://localhost:8090/docs/)
+Swagger documentation - [http://localhost:8090/docs/](http://localhost:8090/docs/)
+Setting up middleware - [Middleware Deployment](https://docs.coronasafe.network/care-software-deployment/hospital-server-setup/introduction)
+Adding a Camera Feed  - [Camera Integration](https://docs.coronasafe.network/care-software-deployment/hospital-server-setup/camera-integration)
