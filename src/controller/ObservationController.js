@@ -9,6 +9,8 @@ import { careApi } from "../utils/configs.js";
 import dayjs from "dayjs";
 import { generateHeaders } from "../utils/assetUtils.js";
 import { PrismaClient } from "@prisma/client";
+import {updateObservationAuto} from '../automation/autoDataExtractor.js'
+import {makeDataDumpToJson} from './helper/makeDataDump.js'
 
 import { isValid } from "../utils/ObservationUtils.js";
 
@@ -156,7 +158,8 @@ const updateObservationsToCare = async () => {
           ">> Updating observation for device:" +
           observation.device_id
       );
-
+      
+      // here we can get password also
       const asset = await getAsset(observation.device_id);
       if (asset === null) {
         console.error(
@@ -273,6 +276,22 @@ const updateObservationsToCare = async () => {
 
       payload.taken_at = observation.last_updated;
       payload.rounds_type = "AUTOMATED";
+
+      // make a JSON dump of payload comparision between the v1 and v2(auto) api
+
+      // dummy cam
+      const cameraParams = {
+        // we can get this from observation.device_id
+        hostname: "192.168.1.64",
+        // this we have to get either from prisma or from care_be
+        username: "remote_user",
+        // this we have to get either from prisma or from care_be
+        password: "2jCkrCRSeahzKEU",
+        port: 80,
+      }
+
+      const v2Payload = updateObservationAuto(cameraParams);
+      makeDataDumpToJson(payload, v2Payload, asset.externalId, patient_id, consultation_id);
 
       axios
         .post(

@@ -93,32 +93,6 @@ export class CameraUtils {
       });
     });
 
-    // static getSnapshotUri = async ({ camParams }) => 
-    // new Promise((resolve, reject) => {
-    //   new Cam(camParams, function (err) {
-    //     if (err) return reject(err);
-    //     try {
-    //       const result = this.
-    //       });
-    //     } catch (error) {
-    //       reject(error);
-    //     }
-    //   });
-    // });
-
-  // static getProfiles = async ({ camParams }) => 
-  //   new Promise((resolve, reject) => {
-  //     new Cam(camParams, function (err) {
-  //       if (err) return reject(err);
-  //       try {
-  //         const result = this.connect();
-  //         resolve(result);
-  //       } catch (error) {
-  //         reject(error);
-  //       }
-  //     });
-  //   });
-
 
 
   

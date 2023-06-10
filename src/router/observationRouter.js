@@ -1,6 +1,5 @@
 import express from "express";
 import { ObservationController } from "../controller/ObservationController.js";
-import { UpdateObservationAutoController } from "../controller/ExtractDataController.js";
 import { validate } from "../middleware/validate.js";
 import { observationsValidators, vitalsValidator, autoObservationValidator } from "../Validators/observationValidators.js";
 
@@ -28,11 +27,5 @@ router.get("/get_time", ObservationController.getTime);
 router.get("/get_log_data", ObservationController.getLogData);
 
 router.get("/get_last_request_data", ObservationController.getLastRequestData);
-
-router.post(
-  "/update_observation_auto",
-  validate(autoObservationValidator),
-  UpdateObservationAutoController.updateObservation
-);
 
 export { router as observationRouter };

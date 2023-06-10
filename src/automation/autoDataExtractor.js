@@ -1,14 +1,10 @@
 
 import { CameraUtils } from "../utils/CameraUtils.js";
-import { catchAsync } from "../utils/catchAsync.js";
 import { downloadImage } from "./helper/downloadImageWithDigestRouter.js";
 import axios  from 'axios';
 import path from "path";
 import fs from 'fs';
 import FormData from 'form-data';
-import { getPatientId } from "../utils/dailyRoundUtils.js";
-import { careApi } from "../utils/configs.js";
-import { generateHeaders } from "../utils/assetUtils.js";
 
 import * as dotenv from "dotenv";
 
@@ -58,12 +54,7 @@ const getSanitizedData = (data)=>{
         "diastolic": parseFloat(data?.["Blood Pressure"])
     } : null
 
-    return Object.entries(sanitizedData).reduce((acc, [key, value]) => {
-        if (value !== null) {
-            acc[key] = value;
-        }
-        return acc;
-    }, {});
+    return sanitizedData
 
 
 }
@@ -107,98 +98,41 @@ const extractData = async (camParams)=>{
 
 }
 
-export class UpdateObservationAutoController {
-    // get camera params
-    static _getCamParams = (body) => {
-        const { hostname, username, password, port } = body;
 
-        const camParams = {
+const _getCamParams = (params) => {
+    const { hostname, username, password, port } = params;
+
+    const camParams = {
         useSecure: Number(port) === 443,
         hostname,
         username,
         password,
         port: Number(port),
-        };
-
-        return camParams;
     };
 
-  /**
-   * @swagger
-   * /update_observation_auto:
-   *   post:
-   *     summary: "Auto update observation"
-   *     description: ""
-   *     tags:
-   *       - Observations
-   *     requestBody:
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             properties:
-   *               hostname:
-   *                 type: string
-   *                 required: true
-   *               username:
-   *                 type: string
-   *                 required: true
-   *               password:
-   *                 type: string
-   *                 required: true
-   *               port:
-   *                 type: integer
-   *                 required: true
-   *               assetExternalId:
-   *                 type: string
-   *                 required: true
-   *     responses:
-   *       "200":
-   *         description: Return success message
-   */
-    static updateObservation = catchAsync(async (req, res) => {
+    return camParams;
+};
 
-        const assetExternalId = req.body.assetExternalId
+export const updateObservationAuto = async (cameraParams)=>
+{
+  try{
+  const cameraParamsSanitized = _getCamParams(cameraParams)
 
-        try{
-            const { consultation_id, patient_id } = await getPatientId(assetExternalId);
-            if (!patient_id) {
-                console.error(
-                    "Patient not found for assetExternalId: " +
-                    assetExternalId
-                );
-                res.send({
-                status: "error",
-                message: "Failed",
-                });
-            }
+  const payload = await extractData(cameraParamsSanitized)
 
-            const payload = await extractData(this._getCamParams(req.body))
-
-            console.log(payload)
-
-            await axios
-            .post(
-            `${careApi}/api/v1/consultation/${consultation_id}/daily_rounds/`,
-            payload,
-            { headers: await generateHeaders(assetExternalId) }
-            )
-
-            res.send({
-            status: "success",
-            message: `Done`,
-            });
-        
-        }
-        catch(error){
-            console.error(error)
-
-            res.send({
-            status: "error",
-            message: "Failed",
-            });
-        }
-    });
-
-
+  return payload
+  }
+  catch(err)
+  {
+    console.log(err)
+    return {
+      "spo2": null,
+      "ventilator_spo2": null,
+      "resp": null,
+      "pulse": null,
+      "temperature": null,
+      "bp": null
+    }
+  }
 }
+
