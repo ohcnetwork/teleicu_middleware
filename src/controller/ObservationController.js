@@ -159,7 +159,6 @@ const updateObservationsToCare = async () => {
           observation.device_id
       );
       
-      // here we can get password also
       const asset = await getAsset(observation.device_id);
       if (asset === null) {
         console.error(
@@ -281,16 +280,21 @@ const updateObservationsToCare = async () => {
 
       // dummy cam
       const cameraParams = {
-        // we can get this from observation.device_id
+        // TODO: change in prod
+        // hostname: asset.ipAddress,
         hostname: "192.168.1.64",
-        // this we have to get either from prisma or from care_be
+        // TODO: change in prod
+        // username: asset.username,
         username: "remote_user",
-        // this we have to get either from prisma or from care_be
+        // TODO: change in prod
+        // password: asset.password,
         password: "2jCkrCRSeahzKEU",
-        port: 80,
+        port: asset.port ?? 80,
       }
 
-      const v2Payload = updateObservationAuto(cameraParams);
+      console.log("updateObservationsToCare:cameraParams", cameraParams);
+
+      const v2Payload = updateObservationAuto(cameraParams, patient_id);
       makeDataDumpToJson(payload, v2Payload, asset.externalId, patient_id, consultation_id);
 
       axios

@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@prisma/client": "^4.0.0",
+    "@prisma/client": "^4.15.0",
     "@sentry/node": "^6.17.7",
     "@sentry/tracing": "^6.17.7",
     "axios": "^0.26.1",
@@ -51,6 +51,6 @@
   "devDependencies": {
     "@types/express-ws": "^3.0.1",
     "nodemon": "^2.0.19",
-    "prisma": "^4.0.0"
+    "prisma": "^4.15.0"
   }
 }

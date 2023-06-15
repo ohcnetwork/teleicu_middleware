@@ -5,12 +5,13 @@ import axios  from 'axios';
 import path from "path";
 import fs from 'fs';
 import FormData from 'form-data';
+import { getMonitorCoordinates } from "./helper/getMonitorCoordinates.js";
 
 import * as dotenv from "dotenv";
 
 dotenv.config({ path: "./.env" });
 
-const MONITOR_PRESET_NAME = "5 Para";
+const MONITOR_PRESET_NAME_PREFIX = "5 Para_Bed_";
 
 const OCR_URL = process.env.OCR_URL;
 
@@ -59,15 +60,10 @@ const getSanitizedData = (data)=>{
 
 }
 
-const extractData = async (camParams)=>{
+const extractData = async (camParams, patientId)=>{
 
-    // get all presets for a camera
-    const presets = await CameraUtils.getPreset({ camParams });
-    // // get 5 para preset value 
-    const cameraViewPreset = presets[MONITOR_PRESET_NAME];
-
-    // // move camera to 5 para preset
-    await CameraUtils.gotoPreset({ camParams, cameraViewPreset })
+    const coordinates = await getMonitorCoordinates(patientId)
+    await CameraUtils.absoluteMove({ camParams, ...coordinates })
 
     const snapshotUrl = await CameraUtils.getSnapshotUri({ camParams });
 
@@ -113,12 +109,12 @@ const _getCamParams = (params) => {
     return camParams;
 };
 
-export const updateObservationAuto = async (cameraParams)=>
+export const updateObservationAuto = async (cameraParams, patientId)=>
 {
   try{
   const cameraParamsSanitized = _getCamParams(cameraParams)
 
-  const payload = await extractData(cameraParamsSanitized)
+  const payload = await extractData(cameraParamsSanitized, patientId)
 
   return payload
   }
