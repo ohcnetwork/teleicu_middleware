@@ -1,4 +1,4 @@
-const fs = require('fs');
+import fs from 'fs'
 
 export const makeDataDumpToJson = (v1Payload, v2Payload, assetExternalId, patient_id, consultation_id)=>{
 

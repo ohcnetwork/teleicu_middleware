@@ -294,7 +294,7 @@ const updateObservationsToCare = async () => {
 
       console.log("updateObservationsToCare:cameraParams", cameraParams);
 
-      const v2Payload = updateObservationAuto(cameraParams, patient_id);
+      const v2Payload = await updateObservationAuto(cameraParams, patient_id);
       makeDataDumpToJson(payload, v2Payload, asset.externalId, patient_id, consultation_id);
 
       axios
