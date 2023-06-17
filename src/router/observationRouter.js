@@ -1,7 +1,8 @@
 import express from "express";
 import { ObservationController } from "../controller/ObservationController.js";
 import { validate } from "../middleware/validate.js";
-import { observationsValidators, vitalsValidator } from "../Validators/observationValidators.js";
+import { observationsValidators, vitalsValidator, autoObservationValidator } from "../Validators/observationValidators.js";
+
 
 const router = express.Router();
 

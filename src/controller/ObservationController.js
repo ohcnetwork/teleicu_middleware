@@ -9,6 +9,8 @@ import { careApi } from "../utils/configs.js";
 import dayjs from "dayjs";
 import { generateHeaders } from "../utils/assetUtils.js";
 import { PrismaClient } from "@prisma/client";
+import {updateObservationAuto} from '../automation/autoDataExtractor.js'
+import {makeDataDumpToJson} from './helper/makeDataDump.js'
 
 import { isValid } from "../utils/ObservationUtils.js";
 
@@ -156,7 +158,7 @@ const updateObservationsToCare = async () => {
           ">> Updating observation for device:" +
           observation.device_id
       );
-
+      
       const asset = await getAsset(observation.device_id);
       if (asset === null) {
         console.error(
@@ -274,6 +276,33 @@ const updateObservationsToCare = async () => {
       payload.taken_at = observation.last_updated;
       payload.rounds_type = "AUTOMATED";
 
+      // make a JSON dump of payload comparision between the v1 and v2(auto) api
+
+      // dummy cam
+      const cameraParams = {
+        // TODO: change in prod
+        hostname: asset.ipAddress,
+        // hostname: "192.168.1.64",
+        // TODO: change in prod
+        username: asset.username,
+        // username: "remote_user",
+        // TODO: change in prod
+        password: asset.password,
+        // password: "2jCkrCRSeahzKEU",
+        port: asset.port ?? 80,
+      }
+
+      console.log("updateObservationsToCare:cameraParams", cameraParams);
+
+      try
+      {
+        const v2Payload = await updateObservationAuto(cameraParams, patient_id);
+        makeDataDumpToJson(payload, v2Payload, asset.externalId, patient_id, consultation_id);
+      }
+      catch(err)
+      {
+        console.log("updateObservationsToCare:Data dump failed", err);
+      }
       axios
         .post(
           `${careApi}/api/v1/consultation/${consultation_id}/daily_rounds/`,
