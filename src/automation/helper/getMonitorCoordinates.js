@@ -1,8 +1,4 @@
 import { PrismaClient } from "@prisma/client"
-import axios from 'axios'
-import { generateHeaders } from "./assetUtils.js"
-import { careApi } from "./configs.js"
-
 
 const prisma = new PrismaClient()
 
