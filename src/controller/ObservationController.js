@@ -281,22 +281,28 @@ const updateObservationsToCare = async () => {
       // dummy cam
       const cameraParams = {
         // TODO: change in prod
-        // hostname: asset.ipAddress,
-        hostname: "192.168.1.64",
+        hostname: asset.ipAddress,
+        // hostname: "192.168.1.64",
         // TODO: change in prod
-        // username: asset.username,
-        username: "remote_user",
+        username: asset.username,
+        // username: "remote_user",
         // TODO: change in prod
-        // password: asset.password,
-        password: "2jCkrCRSeahzKEU",
+        password: asset.password,
+        // password: "2jCkrCRSeahzKEU",
         port: asset.port ?? 80,
       }
 
       console.log("updateObservationsToCare:cameraParams", cameraParams);
 
-      const v2Payload = await updateObservationAuto(cameraParams, patient_id);
-      makeDataDumpToJson(payload, v2Payload, asset.externalId, patient_id, consultation_id);
-
+      try
+      {
+        const v2Payload = await updateObservationAuto(cameraParams, patient_id);
+        makeDataDumpToJson(payload, v2Payload, asset.externalId, patient_id, consultation_id);
+      }
+      catch(err)
+      {
+        console.log("updateObservationsToCare:Data dump failed", err);
+      }
       axios
         .post(
           `${careApi}/api/v1/consultation/${consultation_id}/daily_rounds/`,
