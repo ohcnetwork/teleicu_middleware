@@ -275,10 +275,11 @@ const updateObservationsToCare = async () => {
 
       payload.taken_at = observation.last_updated;
       payload.rounds_type = "AUTOMATED";
-
+      
+      try
+      {
       // make a JSON dump of payload comparision between the v1 and v2(auto) api
 
-      // dummy cam
       const cameraParams = {
         // TODO: change in prod
         hostname: asset.ipAddress,
@@ -294,8 +295,6 @@ const updateObservationsToCare = async () => {
 
       console.log("updateObservationsToCare:cameraParams", cameraParams);
 
-      try
-      {
         const v2Payload = await updateObservationAuto(cameraParams, patient_id);
         makeDataDumpToJson(payload, v2Payload, asset.externalId, patient_id, consultation_id);
       }

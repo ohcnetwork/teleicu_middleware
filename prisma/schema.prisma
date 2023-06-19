@@ -19,8 +19,8 @@ model Asset {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @default(now())
   deleted     Boolean      @default(false)
-  username    String
-  password    String
+  username    String?
+  password    String?
   port        Int?
   DailyRound  DailyRound[]
 
