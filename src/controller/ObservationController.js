@@ -103,11 +103,11 @@ const addLogData = (newData) => {
 const updateObservationsToCare = async () => {
   // console.log(dailyRoundTag() + "updateObservationsToCare called")
   const now = new Date();
-  if (now - lastUpdatedToCare < UPDATE_INTERVAL) {
-    // only update once per hour
-    // console.log(dailyRoundTag() + "updateObservationsToCare skipped")
-    return;
-  }
+  // if (now - lastUpdatedToCare < UPDATE_INTERVAL) {
+  //   // only update once per hour
+  //   // console.log(dailyRoundTag() + "updateObservationsToCare skipped")
+  //   return;
+  // }
   lastUpdatedToCare = now;
 
   const getValueFromData = (data) => {
@@ -281,14 +281,14 @@ const updateObservationsToCare = async () => {
       // dummy cam
       const cameraParams = {
         // TODO: change in prod
-        hostname: asset.ipAddress,
-        // hostname: "192.168.1.64",
+        // hostname: asset.ipAddress,
+        hostname: "192.168.1.64",
         // TODO: change in prod
-        username: asset.username,
-        // username: "remote_user",
+        // username: asset.username,
+        username: "remote_user",
         // TODO: change in prod
-        password: asset.password,
-        // password: "2jCkrCRSeahzKEU",
+        // password: asset.password,
+        password: "2jCkrCRSeahzKEU",
         port: asset.port ?? 80,
       }
 

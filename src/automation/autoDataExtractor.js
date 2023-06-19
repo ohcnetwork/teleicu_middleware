@@ -62,19 +62,19 @@ const getSanitizedData = (data)=>{
 
 const extractData = async (camParams, patientId)=>{
 
-    const coordinates = await getMonitorCoordinates(patientId)
-    await CameraUtils.absoluteMove({ camParams, ...coordinates })
+    // const coordinates = await getMonitorCoordinates(patientId)
+    // await CameraUtils.absoluteMove({ camParams, ...coordinates })
 
-    const snapshotUrl = await CameraUtils.getSnapshotUri({ camParams });
+    // const snapshotUrl = await CameraUtils.getSnapshotUri({ camParams });
 
-    const fileName = "image-" + new Date().getTime() + ".jpeg"
-    const imagePath = path.resolve("images", fileName)
-    await downloadImage(snapshotUrl.uri, imagePath, camParams.username, camParams.password)
-    // const testImg = path.resolve("images", "test.png")
+    // const fileName = "image-" + new Date().getTime() + ".jpeg"
+    // const imagePath = path.resolve("images", fileName)
+    // await downloadImage(snapshotUrl.uri, imagePath, camParams.username, camParams.password)
+    const testImg = path.resolve("images", "test.png")
 
     // POST request with image to ocr
     const bodyFormData = new FormData();
-    bodyFormData.append('image', fs.createReadStream(imagePath));
+    bodyFormData.append('image', fs.createReadStream(testImg));
 
     const response = await axios.post(OCR_URL, bodyFormData, {
         headers: {
