@@ -296,7 +296,7 @@ const updateObservationsToCare = async () => {
       console.log("updateObservationsToCare:cameraParams", cameraParams);
 
         const v2Payload = await updateObservationAuto(cameraParams, patient_id);
-        makeDataDumpToJson(payload, v2Payload, asset.externalId, patient_id, consultation_id);
+        await makeDataDumpToJson(payload, v2Payload, asset.externalId, patient_id, consultation_id);
       }
       catch(err)
       {
