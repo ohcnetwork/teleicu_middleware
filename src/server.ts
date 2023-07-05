@@ -4,7 +4,7 @@ dotenv.config({ path: "./.env" });
 import cors from "cors";
 import path from "path";
 import helmet from "helmet";
-import express from "express";
+import express,{Request, Response} from "express";
 import enableWs from "express-ws";
 import session from "express-session";
 import flash from "connect-flash";
@@ -87,7 +87,7 @@ app.use(morganWithWs);
 //   next();
 // })
 
-app.get("/", (req, res) => res.render("pages/index"));
+app.get("/", (req: Request, res: Response) => res.render("pages/index"));
 // Swagger definition
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
@@ -104,10 +104,10 @@ app.use(healthRouter);
 
 app.get("/.well-known/openid-configuration", openidConfigController);
 
-app.ws("/logger", (ws, req) => {
+app.ws("/logger", (ws, req : Request) => {
   ws.route = "/logger";
 });
-app.ws("/observations/:ip", (ws, req) => {
+app.ws("/observations/:ip", (ws, req : Request) => {
   ws.route = "/observations";
   ws.params = req.params;
 });
@@ -121,6 +121,6 @@ app.all("*", notFoundController);
 // Server status monitor
 ServerStatusController.init(ws);
 
-app.listen(PORT, () =>
+app.listen(PORT, ():void =>
   console.log(`[SERVER] : Middleware App listening at http://localhost:${PORT}`)
 );

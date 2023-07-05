@@ -1,12 +1,13 @@
 import { PrismaClient } from "@prisma/client"
 import dayjs from "dayjs"
+import { Request,Response } from "express"
 
 const prisma = new PrismaClient()
 
 
 export class AssetConfigController {
 
-  static listAssets = async (req, res) => {
+  static listAssets = async (req: Request, res:Response) => {
     prisma.asset.findMany({
       where: {
         deleted: {
@@ -25,7 +26,7 @@ export class AssetConfigController {
     })
   }
 
-  static createAsset = async (req, res) => {
+  static createAsset = async (req: Request, res: Response) => {
     const { name, description, ipAddress, externalId } = req.body;
     prisma.asset.create({
       data: {
@@ -42,7 +43,7 @@ export class AssetConfigController {
     });
   }
 
-  static updateAssetForm = async (req, res) => {
+  static updateAssetForm = async (req: Request, res: Response) => {
     prisma.asset.findUnique({
       where: {
         id: Number(req.params.id)
@@ -55,7 +56,7 @@ export class AssetConfigController {
     })
   }
 
-  static updateAsset = async (req, res) => {
+  static updateAsset = async (req: Request, res: Response) => {
     const { name, description, externalId, ipAddress } = req.body;
     prisma.asset.update({
       where: {
@@ -76,7 +77,7 @@ export class AssetConfigController {
     })
   }
 
-  static confirmDeleteAsset = async (req, res) => {
+  static confirmDeleteAsset = async (req: Request, res: Response) => {
     const asset = await prisma.asset.findUnique({
       where: {
         id: Number(req.params.id)
@@ -85,7 +86,7 @@ export class AssetConfigController {
     res.render("pages/assetDelete", { dayjs, asset });
   }
 
-  static deleteAsset = async (req, res) => {
+  static deleteAsset = async (req: Request, res: Response) => {
     prisma.asset.update({
       where: {
         id: Number(req.params.id)
