@@ -19,9 +19,23 @@ model Asset {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @default(now())
   deleted     Boolean      @default(false)
+  username    String?
+  password    String?
+  port        Int?
   DailyRound  DailyRound[]
 
   @@index([externalId, ipAddress])
+}
+
+model Bed {
+  id        Int               @id @default(autoincrement())
+  patientExternalId String    @unique
+  x         Int
+  y         Int
+  zoom      Int               @default(0)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @default(now())
+  deleted   Boolean           @default(false)
 }
 
 model DailyRound {

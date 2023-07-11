@@ -29,8 +29,8 @@ services:
     container_name: teleicu_middleware
     depends_on:
       - roverr_rtsp_stream
-    environment:
-      - PORT=8090
+    env_file:
+      - ./.env
     ports:
       - "8090:8090"
 

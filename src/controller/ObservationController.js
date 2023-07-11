@@ -9,6 +9,8 @@ import { careApi } from "../utils/configs.js";
 import dayjs from "dayjs";
 import { generateHeaders } from "../utils/assetUtils.js";
 import { PrismaClient } from "@prisma/client";
+import {updateObservationAuto} from '../automation/autoDataExtractor.js'
+import {makeDataDumpToJson} from './helper/makeDataDump.js'
 
 import { isValid } from "../utils/ObservationUtils.js";
 
@@ -31,6 +33,8 @@ const UPDATE_INTERVAL = 60 * 60 * 1000;
 // For testing purposes, set update interval to 5 minutes
 // const UPDATE_INTERVAL = 5 * 60 * 1000;
 const DEFAULT_LISTING_LIMIT = 10;
+
+const getTime = (date) => new Date(date.replace(" ", "T").concat("+0530"));
 
 const flattenObservations = (observations) => {
   if (Array.isArray(observations)) {
@@ -107,7 +111,6 @@ const updateObservationsToCare = async () => {
   lastUpdatedToCare = now;
 
   const getValueFromData = (data) => {
-    let getTime = (date) => new Date(date.replace(" ", "T").concat("+0530"));
     const observationDate = getTime(data?.["date-time"]);
     const stale = now - observationDate > UPDATE_INTERVAL;
 
@@ -155,7 +158,7 @@ const updateObservationsToCare = async () => {
           ">> Updating observation for device:" +
           observation.device_id
       );
-
+      
       const asset = await getAsset(observation.device_id);
       if (asset === null) {
         console.error(
@@ -202,6 +205,7 @@ const updateObservationsToCare = async () => {
       console.log("Building Payload");
 
       // additional check to see if temperature is within range
+      console.log(data)
       let temperature = getValueFromData(data["body-temperature1"]?.[0]);
       let temperature_measured_at = null;
       // const temperature_low_limit = data["body-temperature1"]?.[0]?.["low-limit"];
@@ -219,13 +223,7 @@ const updateObservationsToCare = async () => {
       const bp = {};
       if (
         data["blood-pressure"]?.[0]?.status === "final" &&
-        new Date() -
-          new Date(
-            data?.["blood-pressure"]?.[0]?.["date-time"]
-              .replace(" ", "T")
-              .concat("-0700")
-          ) >
-          UPDATE_INTERVAL
+        now - getTime(data?.["blood-pressure"]?.[0]?.["date-time"]) < UPDATE_INTERVAL // check if data is not stale
       ) {
         bp.systolic = data["blood-pressure"]?.[0]?.systolic?.value ?? null;
         bp.diastolic = data["blood-pressure"]?.[0]?.diastolic?.value ?? null;
@@ -277,7 +275,33 @@ const updateObservationsToCare = async () => {
 
       payload.taken_at = observation.last_updated;
       payload.rounds_type = "AUTOMATED";
+      
+      try
+      {
+      // make a JSON dump of payload comparision between the v1 and v2(auto) api
 
+      const cameraParams = {
+        // TODO: change in prod
+        hostname: asset.ipAddress,
+        // hostname: "192.168.1.64",
+        // TODO: change in prod
+        username: asset.username,
+        // username: "remote_user",
+        // TODO: change in prod
+        password: asset.password,
+        // password: "2jCkrCRSeahzKEU",
+        port: asset.port ?? 80,
+      }
+
+      console.log("updateObservationsToCare:cameraParams", cameraParams);
+
+        const v2Payload = await updateObservationAuto(cameraParams, patient_id);
+        makeDataDumpToJson(payload, v2Payload, asset.externalId, patient_id, consultation_id);
+      }
+      catch(err)
+      {
+        console.log("updateObservationsToCare:Data dump failed", err);
+      }
       axios
         .post(
           `${careApi}/api/v1/consultation/${consultation_id}/daily_rounds/`,

@@ -1,4 +1,4 @@
-name: MN-JNIMS Infra Deploy
+name: Spoke Infra Deploy
 
 on:
   push:
