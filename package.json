@@ -25,8 +25,9 @@
     "swagger-ui-express": "^4.3.0"
   },
   "scripts": {
-    "start": "node dist/server.js",
-    "dev": "nodemon dist/server.js"
+    "start": " node ./dist/server.js ",
+    "compile": " tsc ",
+    "dev": " nodemon ./dist/server.js"
   },
   "name": "teleicu_middleware",
   "description": "Middleware to help tunnel CCTV Streams and ONVIF APIs for TeleICU",
@@ -49,6 +50,10 @@
   },
   "homepage": "https://github.com/coronasafe/teleicu_middleware#readme",
   "devDependencies": {
+    "@types/connect-flash": "^0.0.37",
+    "@types/cors": "^2.8.13",
+    "@types/express": "^4.17.17",
+    "@types/express-session": "^1.17.7",
     "@types/express-ws": "^3.0.1",
     "nodemon": "^2.0.19",
     "prisma": "^4.15.0",
