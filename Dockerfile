@@ -1,5 +1,5 @@
 #stage 1
-FROM node:17-alpine
+FROM node:17-alpine AS build
 
 WORKDIR /usr/src/app
 
@@ -21,8 +21,8 @@ COPY package*.json ./
 
 RUN npm install --production
 
-COPY . .
-
+COPY --from=build /usr/src/app/dist ./dist
+COPY --from=build /usr/src/app/prisma ./prisma
 
 #RUN chmod +x ./start.sh
 
