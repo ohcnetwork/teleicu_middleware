@@ -1,7 +1,12 @@
-import express from "express";
+import {
+  autoObservationValidator,
+  observationsValidators,
+  vitalsValidator,
+} from "../Validators/observationValidators.js";
+
 import { ObservationController } from "../controller/ObservationController.js";
+import express from "express";
 import { validate } from "../middleware/validate.js";
-import { observationsValidators, vitalsValidator } from "../Validators/observationValidators.js";
 
 const router = express.Router();
 
@@ -20,6 +25,8 @@ router.get(
 );
 
 router.get("/get_time", ObservationController.getTime);
+
+router.get("/devices/status", ObservationController.status);
 
 // Debugging Endpoints
 

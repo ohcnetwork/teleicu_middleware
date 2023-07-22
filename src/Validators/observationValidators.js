@@ -1,4 +1,5 @@
 import { query, check, body, checkSchema } from "express-validator";
+import {baseCameraParamsValidators} from '../Validators/cameraValidators.js'
 
 const Observations = {
   ST: "ST",
@@ -101,4 +102,14 @@ export const vitalsValidator = [
     .withMessage("device_id is required.")
     .isString()
     .withMessage("device_id must be string."),
+]
+
+export const autoObservationValidator = [
+  ...baseCameraParamsValidators,
+  body("assetExternalId")
+    .exists({ checkFalsy: true })
+    .withMessage("assetExternalId is required.")
+    .isString()
+    .withMessage("assetExternalId must be string."),
+
 ]
