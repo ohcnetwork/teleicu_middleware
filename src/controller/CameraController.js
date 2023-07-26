@@ -142,6 +142,73 @@ export class CameraController {
 
   /**
    * @swagger
+   * /cameras/status:
+   *   post:
+   *     summary: "Get status of cameras"
+   *     tags:
+   *       - status
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: array
+   *             items:
+   *               type: object
+   *               properties:
+   *                 hostname:
+   *                   type: string
+   *                   description: Device Id or device IP address
+   *                 port:
+   *                   type: number
+   *                   enum: [80, 443]
+   *                 username:
+   *                   type: string
+   *                 password:
+   *                   type: string
+   *     responses:
+   *       "200":
+   *         description: Return camera statuses
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 time:
+   *                   type: string
+   *                   format: date-time
+   *                 status:
+   *                   type: object
+   *                   properties:
+   *                     device_id:
+   *                       type: string
+   *                       enum: [up, down]
+   */
+  static getCameraStatuses = catchAsync(async (req, res) => {
+    const cameras = req.body;
+
+    const cameraStatuses = await Promise.all(
+      cameras.map(async (camera) => {
+        const camParams = this._getCamParams(camera);
+        const status = await CameraUtils.getStatus({ camParams });
+
+        return {
+          deviceId: camera.hostname,
+          status: status?.error === "NO error" ? "up" : "down",
+        };
+      })
+    );
+
+    return res.json({
+      time: new Date().toISOString(),
+      status: cameraStatuses.reduce(
+        (acc, curr) => (acc[curr.deviceId] = curr.status),
+        {}
+      ),
+    });
+  });
+
+  /**
+   * @swagger
    * /absoluteMove:
    *   post:
    *     summary: "Move camera to absolute position"
