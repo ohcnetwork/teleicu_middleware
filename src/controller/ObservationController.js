@@ -373,13 +373,13 @@ const updateObservationsToCare = async () => {
 const filterStatusData = () => {
   const MIN_IN_MS = 60000;
   statusData = statusData.filter(
-    (status) => new Date() - status.time <= 30 * MIN_IN_MS
+    (status) => new Date() - new Date(status.time) <= 30 * MIN_IN_MS
   );
 };
 
 const parseDataAsStatus = (data) => {
   return {
-    time: new Date(),
+    time: new Date(new Date().setSeconds(0, 0)).toISOString(),
 
     status: data.reduce((acc, device_observations) => {
       device_observations.forEach((observation) => {
@@ -396,7 +396,24 @@ const parseDataAsStatus = (data) => {
 const addStatusData = (data) => {
   filterStatusData();
 
-  statusData.push(parseDataAsStatus(data));
+  const newStatus = parseDataAsStatus(data);
+
+  const index = statusData.findIndex(
+    (status) => status.time === newStatus.time
+  );
+
+  if (index === -1) {
+    statusData.push(newStatus);
+    return;
+  }
+
+  statusData[index] = {
+    time: newStatus.time,
+    status: {
+      ...statusData[index].status,
+      ...newStatus.status,
+    },
+  };
 };
 
 export class ObservationController {
@@ -497,7 +514,7 @@ export class ObservationController {
   });
 
   static status = catchAsync(async (req, res) => {
-    filterStatusData();
+    // filterStatusData();
     return res.json(statusData);
   });
 }
