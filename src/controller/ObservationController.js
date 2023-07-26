@@ -514,7 +514,7 @@ export class ObservationController {
   });
 
   static status = catchAsync(async (req, res) => {
-    // filterStatusData();
+    filterStatusData();
     return res.json(statusData);
   });
 }
