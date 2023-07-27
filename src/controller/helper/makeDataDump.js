@@ -28,8 +28,10 @@ export const makeDataDumpToJson = async (v1Payload, v2Payload, assetExternalId, 
     await new Promise((resolve, reject) => {
     s3.upload(params, function(err, data) {
       if (err) {
+        console.log("Auto OCR Upload error")
         reject(err);
       } else {
+        console.log("Auto OCR Upload Success")
         resolve(data);
       }
     });
