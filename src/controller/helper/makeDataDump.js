@@ -1,4 +1,3 @@
-import fs from 'fs'
 import aws from 'aws-sdk'
 import * as dotenv from "dotenv";
 dotenv.config({ path: "./.env" });
