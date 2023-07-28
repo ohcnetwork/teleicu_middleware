@@ -33,7 +33,7 @@ router.get(
 );
 
 router.post(
-  "cameras/status",
+  "/cameras/status",
   validate(camerasStatusBodyValidators),
   CameraController.getCameraStatuses
 );

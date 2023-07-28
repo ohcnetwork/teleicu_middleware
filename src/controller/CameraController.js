@@ -1,6 +1,50 @@
 import { CameraUtils } from "../utils/CameraUtils.js";
 import { catchAsync } from "../utils/catchAsync.js";
 
+var assets = [];
+var statuses = [];
+var fetchStatusesInterval = null;
+
+const filterStatus = () => {
+  const MIN_IN_MS = 60000;
+  statuses = statuses.filter(
+    (status) => new Date() - new Date(status.time) <= 30 * MIN_IN_MS
+  );
+};
+
+const fetchCameraStatuses = async () => {
+  filterStatus();
+
+  const cameraStatuses = await Promise.all(
+    assets.map(async (camera) => {
+      try {
+        const camParams = CameraController._getCamParams(camera);
+        const status = await CameraUtils.getStatus({ camParams });
+
+        return {
+          deviceId: camera.hostname,
+          status: status?.error === "NO error" ? "up" : "down",
+        };
+      } catch (error) {
+        console.error(error);
+
+        return {
+          deviceId: camera.hostname,
+          status: "down",
+        };
+      }
+    })
+  );
+
+  statuses.push({
+    time: new Date().toISOString(),
+    status: cameraStatuses.reduce((acc, curr) => {
+      acc[curr.deviceId] = curr.status;
+      return acc;
+    }, {}),
+  });
+};
+
 export class CameraController {
   static _getCamParams = (body) => {
     const { hostname, username, password, port } = body;
@@ -184,27 +228,13 @@ export class CameraController {
    *                       enum: [up, down]
    */
   static getCameraStatuses = catchAsync(async (req, res) => {
-    const cameras = req.body;
+    assets = req.body;
+    await fetchCameraStatuses();
 
-    const cameraStatuses = await Promise.all(
-      cameras.map(async (camera) => {
-        const camParams = this._getCamParams(camera);
-        const status = await CameraUtils.getStatus({ camParams });
+    clearInterval(fetchStatusesInterval);
+    fetchStatusesInterval = setInterval(fetchCameraStatuses, 60 * 1000);
 
-        return {
-          deviceId: camera.hostname,
-          status: status?.error === "NO error" ? "up" : "down",
-        };
-      })
-    );
-
-    return res.json({
-      time: new Date().toISOString(),
-      status: cameraStatuses.reduce(
-        (acc, curr) => (acc[curr.deviceId] = curr.status),
-        {}
-      ),
-    });
+    return res.json(statuses);
   });
 
   /**
