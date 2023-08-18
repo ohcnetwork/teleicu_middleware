@@ -26,6 +26,7 @@ import { swaggerSpec } from "./swagger/swagger.js";
 import { morganWithWs } from "./middleware/morganWithWs.js";
 import { serverStatusRouter } from "./router/serverStatusRouter.js";
 import { healthRouter } from "./router/healthRouter.js";
+import { bedRouter } from "./router/bedRouter.js";
 
 import { ServerStatusController } from "./controller/ServerStatusController.js";
 import { getWs } from "./middleware/getWs.js";
@@ -41,14 +42,16 @@ app.set("view engine", "ejs");
 app.set("views", path.join(path.resolve(), "src/views"));
 
 // flash messages
-app.use(session({
-  cookieName: "session",
-  secret: "ufhq7s-o1%^bn7j6wasec04-mjb*zv^&0@$lb3%9%w3t5pq3^3",
-  httpOnly: true,
-  maxAge: 1000 * 60 * 30,
-  resave: true,
-  saveUninitialized: true
-}));
+app.use(
+  session({
+    cookieName: "session",
+    secret: "ufhq7s-o1%^bn7j6wasec04-mjb*zv^&0@$lb3%9%w3t5pq3^3",
+    httpOnly: true,
+    maxAge: 1000 * 60 * 30,
+    resave: true,
+    saveUninitialized: true,
+  })
+);
 app.use(flash());
 
 app.use(getWs(ws));
@@ -57,7 +60,7 @@ app.use(cors());
 app.options("*", cors());
 app.use(helmet({ contentSecurityPolicy: false }));
 
-app.use(express.json({limit: '50mb'}));
+app.use(express.json({ limit: "50mb" }));
 
 // Sentry
 Sentry.init({
@@ -101,6 +104,7 @@ app.use(configRouter);
 app.use(assetConfigRouter);
 app.use(serverStatusRouter);
 app.use(healthRouter);
+app.use("/beds", bedRouter);
 
 app.get("/.well-known/openid-configuration", openidConfigController);
 

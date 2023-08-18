@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <%- include('../../partials/head.ejs', { title: 'Teleicu Middleware | Bed Config'})
+    %>
+  </head>
+  <body class="max-w-screen-lg mx-auto">
+    <%- include("../../partials/header") %>
+    <main class="py-8 w-full">
+      <%- include("../../partials/pageTitle",{title:"Bed Config"}) %>
+
+      <% if(errors.length > 0){ %>
+          <div class="bg-red-100 border border-red-400 text-red-700 mb-4 px-4 py-3 relative" role="alert">
+            <% errors.forEach(function(error){ %>
+              <p class="font-bold"><%= error %></p>
+            <% }) %>
+          </div>
+      <% } %>
+
+      <form action="" class="w-fit" method="post">
+        <p>
+            <h3>
+                Add New Bed
+            </h3>
+        </p>
+        <div class="flex flex-wrap items-center my-4 gap-4">
+            <input class="p-2 border-2 border-black" type="text" placeholder="Name" name="name" id="name" value="" />
+            <input class="p-2 border-2 border-black" type="text" placeholder="UUID" name="externalId" id="externalId" value="" />
+            
+            <div class="w-full flex flex-wrap items-center my-4 gap-4">
+                <h3>Add Monitor Preset</h3>
+
+                <input class="p-2 border-2 border-black" type="text" placeholder="Preset x" name="preset_x" id="preset_x" value="" />
+                <input class="p-2 border-2 border-black" type="text" placeholder="Preset y" name="preset_y" id="preset_y" value="" />
+                <input class="p-2 border-2 border-black" type="text" placeholder="Preset zoom" name="preset_zoom" id="preset_zoom" value="" />
+            </div>
+
+            <input class="px-4 py-2 hover:bg-green-700 bg-green-500" type="submit" value="Add" />
+        </div>
+      </form>
+
+      <table class="w-full table-auto text-left border-separate border-spacing-y-4">
+        <tr >
+            <th>ID</th>
+            <th>Name</th>
+            <th>External ID</th>
+            <th>Monitor Preset</th>
+            <th>Updated At</th>
+            <th>Actions</th>
+        </tr>
+        <% beds.forEach((bed) => { %>
+        <tr>
+            <td class="w-fit"><%= bed.id %></td>
+            <td class="w-fit"><%= bed.name %></td>
+            <td class="w-fit"><%= bed.externalId %></td>
+            <% if (bed.monitorPreset) { %>
+                <td class="w-fit"><%= bed.monitorPreset.x %>, <%= bed.monitorPreset.y %>, <%= bed.monitorPreset.zoom %></td>
+            <% } else { %>
+                <td class="w-fit">Not Available</td>
+            <% } %>
+            <td class="w-fit"><%= dayjs(bed.updatedAt).format('DD/MM/YYYY hh:mm:ss a') %></td>
+            <td class="w-fit">
+                <a class="px-4 py-2 my-2 hover:bg-yellow-700 bg-yellow-500" href="/beds/<%= bed.id %>">Edit</a>
+                <a class="px-4 py-2 my-2 hover:bg-red-700 bg-red-500" href="/beds/<%= bed.id %>/delete">Delete</a>
+            </td>
+        </tr>
+        <% }) %>
+      </table>
+    </main>
+    <%- include("../../partials/footer") %>
+  </body>
+</html>
