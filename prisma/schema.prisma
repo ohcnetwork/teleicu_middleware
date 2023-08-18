@@ -10,9 +10,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum AssetType {
+  CAMERA
+  MONITOR
+}
+
 model Asset {
   id          Int          @id @default(autoincrement())
   name        String
+  type        AssetType    @default(MONITOR)
   description String
   externalId  String       @unique
   ipAddress   String       @unique
@@ -21,21 +27,31 @@ model Asset {
   deleted     Boolean      @default(false)
   username    String?
   password    String?
-  port        Int?
+  port        Int?         @default(80)
   DailyRound  DailyRound[]
+  Bed         Bed?         @relation(fields: [bedId], references: [id])
+  bedId       Int?
 
   @@index([externalId, ipAddress])
 }
 
 model Bed {
-  id        Int               @id @default(autoincrement())
-  patientExternalId String    @unique
-  x         Int
-  y         Int
-  zoom      Int               @default(0)
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @default(now())
-  deleted   Boolean           @default(false)
+  id            Int      @id @default(autoincrement())
+  externalId    String   @unique
+  monitorPreset Preset?
+  assets        Asset[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+  deleted       Boolean  @default(false)
+}
+
+model Preset {
+  id    Int @id @default(autoincrement())
+  x     Int
+  y     Int
+  zoom  Int @default(0)
+  bed   Bed @relation(fields: [bedId], references: [id])
+  bedId Int @unique
 }
 
 model DailyRound {
