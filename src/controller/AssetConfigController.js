@@ -7,52 +7,95 @@ const prisma = new PrismaClient()
 export class AssetConfigController {
 
   static listAssets = async (req, res) => {
-    prisma.asset.findMany({
-      where: {
-        deleted: {
-          equals: false
-        }
-      },
-      orderBy: [
-        {
-          updatedAt: "desc"
-        }
-      ]
-    }).then(assets => {
-      res.render("pages/assetList", { dayjs, assets, errors: req.flash("error") });
-    }).catch(err => {
-      res.render("pages/assetList", { dayjs, assets: [], errors: [err.message] });
-    })
+    try {
+      const assets = await prisma.asset.findMany({
+        where: {
+          deleted: false,
+        },
+        orderBy: [{ updatedAt: "desc" }],
+      });
+
+      const beds = await prisma.bed.findMany({
+        where: {
+          deleted: false,
+        },
+        orderBy: [{ updatedAt: "desc" }],
+      });
+
+      res.render("pages/assetList", {
+        dayjs,
+        assets,
+        beds,
+        errors: req.flash("error"),
+      });
+    } catch (err) {
+      res.render("pages/assetList", {
+        dayjs,
+        assets: [],
+        beds: [],
+        errors: [err.message],
+      });
+    }
   }
 
   static createAsset = async (req, res) => {
-    const { name, description, ipAddress, externalId } = req.body;
-    prisma.asset.create({
-      data: {
-        name,
-        description,
-        ipAddress,
-        externalId
-      }
-    }).then(_ => {
-      res.redirect("/assets");
-    }).catch(err => {
-      req.flash("error", err.message);
-      res.redirect("/assets");
-    });
+    const {
+      name,
+      type,
+      description,
+      ipAddress,
+      externalId,
+      username,
+      password,
+      port,
+    } = req.body;
+    prisma.asset
+      .create({
+        data: {
+          name,
+          type,
+          description,
+          ipAddress,
+          externalId,
+          username,
+          password,
+          port: Number(port),
+        },
+      })
+      .then((_) => {
+        res.redirect("/assets");
+      })
+      .catch((err) => {
+        req.flash("error", err.message);
+        res.redirect("/assets");
+      });
   }
 
   static updateAssetForm = async (req, res) => {
-    prisma.asset.findUnique({
-      where: {
-        id: Number(req.params.id)
-      }
-    }).then(asset => {
-      res.render("pages/assetForm", { dayjs, asset, errors: req.flash("error") });
-    }).catch(err => {
+    try {
+      const asset = await prisma.asset.findUniqueOrThrow({
+        where: {
+          id: Number(req.params.id),
+        },
+      });
+
+      const beds = await prisma.bed.findMany({
+        where: {
+          deleted: false,
+        },
+        orderBy: [{ updatedAt: "desc" }],
+      });
+
+      res.render("pages/assetForm", {
+        dayjs,
+        asset,
+        beds,
+        errors: req.flash("error"),
+      });
+    } catch (err) {
       req.flash("error", err.message);
       res.redirect("/assets");
-    })
+    }
   }
 
   static updateAsset = async (req, res) => {
