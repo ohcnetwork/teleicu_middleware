@@ -37,6 +37,7 @@ model Asset {
 
 model Bed {
   id            Int      @id @default(autoincrement())
+  name          String
   externalId    String   @unique
   monitorPreset Preset?
   assets        Asset[]

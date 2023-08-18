@@ -11,6 +11,7 @@ ADD COLUMN     "username" TEXT;
 -- CreateTable
 CREATE TABLE "Bed" (
     "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
     "externalId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
