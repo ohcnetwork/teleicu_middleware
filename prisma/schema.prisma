@@ -29,8 +29,7 @@ model Asset {
   password    String?
   port        Int?         @default(80)
   DailyRound  DailyRound[]
-  Bed         Bed?         @relation(fields: [bedId], references: [id])
-  bedId       Int?
+  Bed         Bed[]
 
   @@index([externalId, ipAddress])
 }
@@ -40,7 +39,8 @@ model Bed {
   name          String
   externalId    String   @unique
   monitorPreset Preset?
-  assets        Asset[]
+  camera        Asset    @relation(fields: [cameraId], references: [id])
+  cameraId      Int
   createdAt     DateTime @default(now())
   updatedAt     DateTime @default(now())
   deleted       Boolean  @default(false)
