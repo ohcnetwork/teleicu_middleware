@@ -66,15 +66,6 @@
           <input class="px-2 py-1 border-2 border-black" type="number" placeholder="127.0.0.1" name="port" id="port" value="<%- asset.port %>" />
         </div>
         <div class="flex flex-col mt-2">
-          <label for="name">Bed</label>
-          <select class="p-2 border-2 border-black" name="type" id="type">
-            <option value="" disabled selected hidden>Select a Bed</option>
-              <% beds.forEach(function(bed){ %>
-                <option class="truncate" selected="<%= asset.bedId === bed.id %>" value="<%= bed.externalId %>"><%= bed.name + " -- " + bed.externalId.slice(0, 10) %></option>
-              <% }) %>
-          </select>
-        </div>
-        <div class="flex flex-col mt-2">
             <input class="px-4 py-2 hover:bg-green-700 bg-green-500" type="submit" value="Save" />
         </div>
       </form>

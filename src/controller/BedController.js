@@ -12,6 +12,15 @@ export class BedController {
         },
         include: {
           monitorPreset: true,
+          camera: true,
+        },
+        orderBy: [{ updatedAt: "desc" }],
+      });
+
+      const cameras = await prisma.asset.findMany({
+        where: {
+          deleted: false,
+          type: "CAMERA",
         },
         orderBy: [{ updatedAt: "desc" }],
       });
@@ -19,31 +28,34 @@ export class BedController {
       res.render("pages/beds/list", {
         dayjs,
         beds,
+        cameras,
         errors: req.flash("error"),
       });
     } catch (err) {
       res.render("pages/beds/list", {
         dayjs,
         beds: [],
+        cameras: [],
         errors: [err.message],
       });
     }
   };
 
   static create = async (req, res) => {
-    const { name, externalId, preset_x, preset_y, preset_zoom } = req.body;
+    const { name, externalId, cameraId, preset_x, preset_y, preset_zoom } =
+      req.body;
 
-    console.log(preset_x, preset_y, preset_zoom);
     try {
       await prisma.bed.create({
         data: {
           name,
           externalId,
+          cameraId: Number(cameraId) || undefined,
           monitorPreset: {
             create: {
-              x: Number(preset_x),
-              y: Number(preset_y),
-              zoom: Number(preset_zoom),
+              x: Number(preset_x) || undefined,
+              y: Number(preset_y) || undefined,
+              zoom: Number(preset_zoom) || undefined,
             },
           },
         },
@@ -66,12 +78,22 @@ export class BedController {
         },
         include: {
           monitorPreset: true,
+          camera: true,
         },
+      });
+
+      const cameras = await prisma.asset.findMany({
+        where: {
+          deleted: false,
+          type: "CAMERA",
+        },
+        orderBy: [{ updatedAt: "desc" }],
       });
 
       res.render("pages/beds/edit", {
         dayjs,
         bed,
+        cameras,
         errors: req.flash("error"),
       });
     } catch (err) {
@@ -82,7 +104,8 @@ export class BedController {
 
   static edit = async (req, res) => {
     const { id } = req.params;
-    const { name, externalId, preset_x, preset_y, preset_zoom } = req.body;
+    const { name, externalId, cameraId, preset_x, preset_y, preset_zoom } =
+      req.body;
 
     try {
       await prisma.bed.update({
@@ -92,11 +115,12 @@ export class BedController {
         data: {
           name,
           externalId,
+          cameraId: Number(cameraId) || undefined,
           monitorPreset: {
             update: {
-              x: Number(preset_x),
-              y: Number(preset_y),
-              zoom: Number(preset_zoom),
+              x: Number(preset_x) || undefined,
+              y: Number(preset_y) || undefined,
+              zoom: Number(preset_zoom) || undefined,
             },
           },
         },

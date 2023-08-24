@@ -26,6 +26,12 @@
         <div class="flex flex-wrap items-center my-4 gap-4">
             <input class="p-2 border-2 border-black" type="text" placeholder="Name" name="name" id="name" value="" />
             <input class="p-2 border-2 border-black" type="text" placeholder="UUID" name="externalId" id="externalId" value="" />
+            <select class="p-2 border-2 border-black" name="cameraId" id="cameraId" placeholder="Camera">
+              <option value="" disabled selected>Select a Camera</option>
+              <% cameras.forEach(function(camera){ %>
+                <option class="truncate" value="<%= camera.id %>"><%= camera.name  %></option>
+              <% }) %>
+            </select>
             
             <div class="w-full flex flex-wrap items-center my-4 gap-4">
                 <h3>Add Monitor Preset</h3>
@@ -44,6 +50,7 @@
             <th>ID</th>
             <th>Name</th>
             <th>External ID</th>
+            <th>Camera</th>
             <th>Monitor Preset</th>
             <th>Updated At</th>
             <th>Actions</th>
@@ -53,6 +60,7 @@
             <td class="w-fit"><%= bed.id %></td>
             <td class="w-fit"><%= bed.name %></td>
             <td class="w-fit"><%= bed.externalId %></td>
+            <td class="w-fit"><%= bed.camera?.name ?? "No Camera Linked" %></td>
             <% if (bed.monitorPreset) { %>
                 <td class="w-fit"><%= bed.monitorPreset.x %>, <%= bed.monitorPreset.y %>, <%= bed.monitorPreset.zoom %></td>
             <% } else { %>

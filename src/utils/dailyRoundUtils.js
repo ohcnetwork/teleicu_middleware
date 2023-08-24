@@ -42,15 +42,14 @@ export const getPatientId = async (assetExternalId) => {
 // };
 
 
-export const getCameraByBedId = async (bedId) => {
-  return prisma.asset.findFirst({
+export const getBedById = async (bedId) => {
+  return prisma.bed.findFirst({
     where: {
-      bedId,
-      assetType: "CAMERA",
+      id: bedId,
       deleted: false,
     },
     include: {
-      Bed: true,
+      camera: true,
     },
-  })
+  });
 };
