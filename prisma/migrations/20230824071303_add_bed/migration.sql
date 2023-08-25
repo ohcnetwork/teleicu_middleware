@@ -2,8 +2,7 @@
 CREATE TYPE "AssetType" AS ENUM ('CAMERA', 'MONITOR');
 
 -- AlterTable
-ALTER TABLE "Asset" ADD COLUMN     "bedId" INTEGER,
-ADD COLUMN     "password" TEXT,
+ALTER TABLE "Asset" ADD COLUMN     "password" TEXT,
 ADD COLUMN     "port" INTEGER DEFAULT 80,
 ADD COLUMN     "type" "AssetType" NOT NULL DEFAULT 'MONITOR',
 ADD COLUMN     "username" TEXT;
@@ -13,6 +12,7 @@ CREATE TABLE "Bed" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "externalId" TEXT NOT NULL,
+    "cameraId" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deleted" BOOLEAN NOT NULL DEFAULT false,
@@ -38,7 +38,7 @@ CREATE UNIQUE INDEX "Bed_externalId_key" ON "Bed"("externalId");
 CREATE UNIQUE INDEX "Preset_bedId_key" ON "Preset"("bedId");
 
 -- AddForeignKey
-ALTER TABLE "Asset" ADD CONSTRAINT "Asset_bedId_fkey" FOREIGN KEY ("bedId") REFERENCES "Bed"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Bed" ADD CONSTRAINT "Bed_cameraId_fkey" FOREIGN KEY ("cameraId") REFERENCES "Asset"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Preset" ADD CONSTRAINT "Preset_bedId_fkey" FOREIGN KEY ("bedId") REFERENCES "Bed"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

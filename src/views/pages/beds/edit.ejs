@@ -37,6 +37,15 @@
             <label for="externalId">External ID</label>
             <input class="px-2 py-1 border-2 border-black" type="text" placeholder="UUID" name="externalId" id="externalId" value="<%- bed.externalId %>" />
         </div>
+        <div class="flex flex-col mt-2">
+          <label for="name">Camera</label>
+          <select class="p-2 border-2 border-black" name="cameraId" id="cameraId">
+            <option value="" disabled selected hidden>Select a Camera</option>
+              <% cameras.forEach(function(camera){ %>
+                <option class="truncate" selected="<%= camera.cameraId === camera.id %>" value="<%= camera.id %>"><%= camera.name %></option>
+              <% }) %>
+          </select>
+        </div>
 
         <h2 class="my-3 py-3 text-2xl border-b">Update Monitor Preset<h2>
         <div class="flex flex-col mt-2">

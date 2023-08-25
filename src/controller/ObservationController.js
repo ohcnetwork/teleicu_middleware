@@ -1,6 +1,6 @@
 import {
   getAsset,
-  getCameraByBedId,
+  getBedById,
   getPatientId,
 } from "../utils/dailyRoundUtils.js";
 
@@ -290,7 +290,7 @@ const updateObservationsToCare = async () => {
       payload.rounds_type = "AUTOMATED";
 
       try {
-        const camera = await getCameraByBedId(bed_id);
+        const { camera } = await getBedById(bed_id);
 
         const cameraParams = {
           hostname: camera.ipAddress,

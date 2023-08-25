@@ -35,12 +35,7 @@
             <input class="p-2 border-2 border-black" type="text" placeholder="remote-user" name="username" id="username" value="" />
             <input class="p-2 border-2 border-black" type="password" placeholder="password" name="password" id="password" value="" />
             <input class="p-2 border-2 border-black" type="number" placeholder="80" name="port" id="port" value="" />
-            <select class="p-2 border-2 border-black" name="bedId" id="bedId" placeholder="Bed">
-              <option value="" disabled selected hidden>Select a Bed</option>
-              <% beds.forEach(function(bed){ %>
-                <option class="truncate" value="<%= bed.externalId %>"><%= bed.name + " -- " + bed.externalId.slice(0, 10) %></option>
-              <% }) %>
-            </select>
+            
             <input class="px-4 py-2 hover:bg-green-700 bg-green-500" type="submit" value="Add " />
         </div>
       </form>
