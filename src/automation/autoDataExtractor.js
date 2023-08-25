@@ -60,39 +60,42 @@ const getSanitizedData = (data)=>{
 
 }
 
-const extractData = async (camParams, patientId)=>{
+const extractData = async (camParams, bedId) => {
+  const coordinates = await getMonitorCoordinates(bedId);
+  await CameraUtils.absoluteMove({ camParams, ...coordinates });
 
-    const coordinates = await getMonitorCoordinates(patientId)
-    await CameraUtils.absoluteMove({ camParams, ...coordinates })
+  const snapshotUrl = await CameraUtils.getSnapshotUri({ camParams });
 
-    const snapshotUrl = await CameraUtils.getSnapshotUri({ camParams });
+  const fileName = "image-" + new Date().getTime() + ".jpeg";
+  const imagePath = path.resolve("images", fileName);
+  await downloadImage(
+    snapshotUrl.uri,
+    imagePath,
+    camParams.username,
+    camParams.password
+  );
+  // const testImg = path.resolve("images", "test.png")
 
-    const fileName = "image-" + new Date().getTime() + ".jpeg"
-    const imagePath = path.resolve("images", fileName)
-    await downloadImage(snapshotUrl.uri, imagePath, camParams.username, camParams.password)
-    // const testImg = path.resolve("images", "test.png")
+  // POST request with image to ocr
+  const bodyFormData = new FormData();
+  bodyFormData.append("image", fs.createReadStream(imagePath));
 
-    // POST request with image to ocr
-    const bodyFormData = new FormData();
-    bodyFormData.append('image', fs.createReadStream(imagePath));
+  const response = await axios.post(OCR_URL, bodyFormData, {
+    headers: {
+      ...bodyFormData.getHeaders(),
+    },
+  });
 
-    const response = await axios.post(OCR_URL, bodyFormData, {
-        headers: {
-            ...bodyFormData.getHeaders()
-        }
-    })
+  // delete image
+  fs.unlink(imagePath, (err) => {
+    if (err) {
+      // TODO: Critical logger setup
+      console.error(err);
+    }
+  });
 
-    // delete image
-    fs.unlink(imagePath, (err) => {
-        if (err) {
-            // TODO: Critical logger setup
-            console.error(err)
-        }
-    })
-
-    return getSanitizedData(response.data.data)
-
-}
+  return getSanitizedData(response.data.data);
+};
 
 
 const _getCamParams = (params) => {
@@ -109,26 +112,23 @@ const _getCamParams = (params) => {
     return camParams;
 };
 
-export const updateObservationAuto = async (cameraParams, patientId)=>
-{
-  try{
-  const cameraParamsSanitized = _getCamParams(cameraParams)
+export const updateObservationAuto = async (cameraParams, bedId) => {
+  try {
+    const cameraParamsSanitized = _getCamParams(cameraParams);
 
-  const payload = await extractData(cameraParamsSanitized, patientId)
+    const payload = await extractData(cameraParamsSanitized, bedId);
 
-  return payload
-  }
-  catch(err)
-  {
-    console.log(err)
+    return payload;
+  } catch (err) {
+    console.log(err);
     return {
-      "spo2": null,
-      "ventilator_spo2": null,
-      "resp": null,
-      "pulse": null,
-      "temperature": null,
-      "bp": null
-    }
+      spo2: null,
+      ventilator_spo2: null,
+      resp: null,
+      pulse: null,
+      temperature: null,
+      bp: null,
+    };
   }
-}
+};
 

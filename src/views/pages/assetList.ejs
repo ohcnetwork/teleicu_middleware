@@ -23,11 +23,24 @@
                 Add New Asset
             </h3>
         </p>
-        <div class="flex my-4 gap-x-4">
-            <input class="px-2 border-2 border-black" type="text" placeholder="Asset name" name="name" id="name" value="" />
-            <input class="px-2 border-2 border-black" type="text" placeholder="Description" name="description" id="description" value="" />
-            <input class="px-2 border-2 border-black" type="text" placeholder="UUID" name="externalId" id="externalId" value="" />
-            <input class="px-2 border-2 border-black" type="text" placeholder="127.0.0.1" name="ipAddress" id="ipAddress" value="" />
+        <div class="flex flex-wrap items-center justify-center my-4 gap-4">
+            <input class="p-2 border-2 border-black" type="text" placeholder="Asset name" name="name" id="name" value="" />
+            <select class="p-2 border-2 border-black" name="type" id="type" placeholder="Asset type">
+              <option value="MONITOR">Monitor</option>
+              <option value="CAMERA">Camera</option>
+            </select>
+            <input class="p-2 border-2 border-black" type="text" placeholder="Description" name="description" id="description" value="" />
+            <input class="p-2 border-2 border-black" type="text" placeholder="UUID" name="externalId" id="externalId" value="" />
+            <input class="p-2 border-2 border-black" type="text" placeholder="127.0.0.1" name="ipAddress" id="ipAddress" value="" />
+            <input class="p-2 border-2 border-black" type="text" placeholder="remote-user" name="username" id="username" value="" />
+            <input class="p-2 border-2 border-black" type="password" placeholder="password" name="password" id="password" value="" />
+            <input class="p-2 border-2 border-black" type="number" placeholder="80" name="port" id="port" value="" />
+            <select class="p-2 border-2 border-black" name="bedId" id="bedId" placeholder="Bed">
+              <option value="" disabled selected hidden>Select a Bed</option>
+              <% beds.forEach(function(bed){ %>
+                <option class="truncate" value="<%= bed.externalId %>"><%= bed.name + " -- " + bed.externalId.slice(0, 10) %></option>
+              <% }) %>
+            </select>
             <input class="px-4 py-2 hover:bg-green-700 bg-green-500" type="submit" value="Add " />
         </div>
       </form>
@@ -36,6 +49,7 @@
         <tr >
             <th>ID</th>
             <th>Name</th>
+            <th>Type</th>
             <!-- <th>Description</th> -->
             <th>External ID</th>
             <th>IP address</th>
@@ -44,8 +58,10 @@
         </tr>
         <% for (var i = 0; i < assets.length; i++) { %>
         <tr>
+          <% console.log(assets[i]) %>
             <td class="w-fit"><%= assets[i].id %></td>
             <td class="w-fit"><%= assets[i].name %></td>
+            <td class="w-fit"><%= assets[i].type %></td>
             <!-- <td ><%= assets[i].description %></td> -->
             <td class="w-fit"><%= assets[i].externalId %></td>
             <td class="w-fit"><%= assets[i].ipAddress %></td>

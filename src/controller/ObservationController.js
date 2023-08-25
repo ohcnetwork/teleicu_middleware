@@ -1,4 +1,8 @@
-import { getAsset, getPatientId } from "../utils/dailyRoundUtils.js";
+import {
+  getAsset,
+  getCameraByBedId,
+  getPatientId,
+} from "../utils/dailyRoundUtils.js";
 
 import { BadRequestException } from "../Exception/BadRequestException.js";
 import { NotFoundException } from "../Exception/NotFoundException.js";
@@ -177,7 +181,7 @@ const updateObservationsToCare = async () => {
         continue;
       }
 
-      const { consultation_id, patient_id } = await getPatientId(
+      const { consultation_id, patient_id, bed_id } = await getPatientId(
         asset.externalId
       );
       if (!patient_id) {
@@ -286,24 +290,18 @@ const updateObservationsToCare = async () => {
       payload.rounds_type = "AUTOMATED";
 
       try {
-        // make a JSON dump of payload comparision between the v1 and v2(auto) api
+        const camera = await getCameraByBedId(bed_id);
 
         const cameraParams = {
-          // TODO: change in prod
-          hostname: asset.ipAddress,
-          // hostname: "192.168.1.64",
-          // TODO: change in prod
-          username: asset.username,
-          // username: "remote_user",
-          // TODO: change in prod
-          password: asset.password,
-          // password: "2jCkrCRSeahzKEU",
-          port: asset.port ?? 80,
+          hostname: camera.ipAddress,
+          username: camera.username,
+          password: camera.password,
+          port: camera.port,
         };
 
         console.log("updateObservationsToCare:cameraParams", cameraParams);
 
-        const v2Payload = await updateObservationAuto(cameraParams, patient_id);
+        const v2Payload = await updateObservationAuto(cameraParams, bed_id);
         await makeDataDumpToJson(
           payload,
           v2Payload,
