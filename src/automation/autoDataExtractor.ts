@@ -8,27 +8,39 @@ import FormData from 'form-data';
 import { getMonitorCoordinates } from "./helper/getMonitorCoordinates.js";
 
 import * as dotenv from "dotenv";
+import { String } from "aws-sdk/clients/batch.js";
 
 dotenv.config({ path: "./.env" });
 
 const MONITOR_PRESET_NAME_PREFIX = "5 Para_Bed_";
 
-const OCR_URL = process.env.OCR_URL;
+const OCR_URL:string|undefined = process.env.OCR_URL;
 
-const celsiusToFahrenheit = (celsius)=> {
-    celsius = parseFloat(celsius)
-    const fahrenheit = (celsius * 9/5) + 32;
+type ParserFunction = (value: string) => number;
+
+type camParams ={
+    useSecure:boolean,
+    hostname:string,
+    username?:string,
+    password?:string,
+    port?:number
+}
+
+
+const celsiusToFahrenheit = (celsius:string):number=> {
+    const celsiusnum:number = parseFloat(celsius)
+    const fahrenheit:number = (celsiusnum * 9/5) + 32;
     return fahrenheit;
 }
 
-const validator = (value, parser, minvalue, maxValue)=>{
+const validator = (value:any, parser:ParserFunction, minvalue:number, maxValue:number):number|null=>{
 
     if(isNaN(value))
     {
         return null
     }
 
-    value = parser(value)
+    value  = parser(value as string)
 
     return value >=minvalue && value <=maxValue ? value : null
 }
@@ -60,45 +72,49 @@ const getSanitizedData = (data)=>{
 
 }
 
-const extractData = async (camParams, patientId)=>{
+const extractData = async (camParams:{hostname:string,username?:string,password?:string,port?:number}, bedId:number) => {
+  const coordinates = await getMonitorCoordinates(bedId);
+  await CameraUtils.absoluteMove({ camParams, ...coordinates });
 
-    const coordinates = await getMonitorCoordinates(patientId)
-    await CameraUtils.absoluteMove({ camParams, ...coordinates })
+  const snapshotUrl:any = await CameraUtils.getSnapshotUri({ camParams });
 
-    const snapshotUrl = await CameraUtils.getSnapshotUri({ camParams });
+  const fileName = "image-" + new Date().getTime() + ".jpeg";
+  const imagePath = path.resolve("images", fileName);
+  await downloadImage(
+    snapshotUrl.uri,
+    imagePath,
+    camParams.username as string,
+    camParams.password as string
+  );
+  // const testImg = path.resolve("images", "test.png")
 
-    const fileName = "image-" + new Date().getTime() + ".jpeg"
-    const imagePath = path.resolve("images", fileName)
-    await downloadImage(snapshotUrl.uri, imagePath, camParams.username, camParams.password)
-    // const testImg = path.resolve("images", "test.png")
+  // POST request with image to ocr
+  const bodyFormData = new FormData();
+  bodyFormData.append("image", fs.createReadStream(imagePath));
 
-    // POST request with image to ocr
-    const bodyFormData = new FormData();
-    bodyFormData.append('image', fs.createReadStream(imagePath));
+  const response = await axios.post(OCR_URL as string, bodyFormData, {
+    headers: {
+      ...bodyFormData.getHeaders(),
+    },
+  });
 
-    const response = await axios.post(OCR_URL, bodyFormData, {
-        headers: {
-            ...bodyFormData.getHeaders()
-        }
-    })
+  // delete image
+  fs.unlink(imagePath, (err) => {
+    if (err) {
+      // TODO: Critical logger setup
+      console.error(err);
+    }
+  });
 
-    // delete image
-    fs.unlink(imagePath, (err) => {
-        if (err) {
-            // TODO: Critical logger setup
-            console.error(err)
-        }
-    })
-
-    return getSanitizedData(response.data.data)
-
-}
+  return getSanitizedData(response.data.data);
+};
 
 
-const _getCamParams = (params) => {
+
+const _getCamParams = (params:{hostname:string,username?:string,password?:string,port?:number}):camParams => {
     const { hostname, username, password, port } = params;
 
-    const camParams = {
+    const camParams:camParams = {
         useSecure: Number(port) === 443,
         hostname,
         username,
@@ -109,26 +125,22 @@ const _getCamParams = (params) => {
     return camParams;
 };
 
-export const updateObservationAuto = async (cameraParams, patientId)=>
-{
-  try{
-  const cameraParamsSanitized = _getCamParams(cameraParams)
+export const updateObservationAuto = async (cameraParams:{hostname:string,username?:string,password?:string,port?:number}, bedId:number) => {
+  try {
+    const cameraParamsSanitized:camParams = _getCamParams(cameraParams);
 
-  const payload = await extractData(cameraParamsSanitized, patientId)
+    const payload = await extractData(cameraParamsSanitized, bedId);
 
-  return payload
-  }
-  catch(err)
-  {
-    console.log(err)
+    return payload;
+  } catch (err) {
+    console.log(err);
     return {
-      "spo2": null,
-      "ventilator_spo2": null,
-      "resp": null,
-      "pulse": null,
-      "temperature": null,
-      "bp": null
-    }
+      spo2: null,
+      ventilator_spo2: null,
+      resp: null,
+      pulse: null,
+      temperature: null,
+      bp: null,
+    };
   }
-}
-
+};

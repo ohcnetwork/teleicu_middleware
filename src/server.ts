@@ -6,7 +6,7 @@ import path from "path";
 import helmet from "helmet";
 import express,{Request, Response} from "express";
 import enableWs from "express-ws";
-import session from "express-session";
+import session , { Cookie, SessionOptions }from "express-session";
 import flash from "connect-flash";
 import swaggerUi from "swagger-ui-express";
 import * as Sentry from "@sentry/node";
@@ -26,29 +26,35 @@ import { swaggerSpec } from "./swagger/swagger.js";
 import { morganWithWs } from "./middleware/morganWithWs.js";
 import { serverStatusRouter } from "./router/serverStatusRouter.js";
 import { healthRouter } from "./router/healthRouter.js";
+import { bedRouter } from "./router/bedRouter.js";
 
 import { ServerStatusController } from "./controller/ServerStatusController.js";
 import { getWs } from "./middleware/getWs.js";
 
 import { openidConfigController } from "./controller/OpenidConfig.js";
+import { ParamsDictionary } from "express-serve-static-core";
 
-const PORT = process.env.PORT || 8090;
+const PORT: number | string = process.env.PORT || 8090;
 
-const app = express();
-const ws = enableWs(app);
+const app : express.Express = express();
+const ws : enableWs.Instance = enableWs(app);
 
 app.set("view engine", "ejs");
 app.set("views", path.join(path.resolve(), "src/views"));
 
+const sessionoptions:SessionOptions ={
+  
+    name: "session",
+    secret: "ufhq7s-o1%^bn7j6wasec04-mjb*zv^&0@$lb3%9%w3t5pq3^3",
+    cookie:{httpOnly: true,
+            maxAge: 1000 * 60 * 30,
+           },
+    resave: true,
+    saveUninitialized: true
+  
+} 
 // flash messages
-app.use(session({
-  cookieName: "session",
-  secret: "ufhq7s-o1%^bn7j6wasec04-mjb*zv^&0@$lb3%9%w3t5pq3^3",
-  httpOnly: true,
-  maxAge: 1000 * 60 * 30,
-  resave: true,
-  saveUninitialized: true
-}));
+app.use(session(sessionoptions));
 app.use(flash());
 
 app.use(getWs(ws));
@@ -101,13 +107,14 @@ app.use(configRouter);
 app.use(assetConfigRouter);
 app.use(serverStatusRouter);
 app.use(healthRouter);
+app.use("/beds",bedRouter)
 
 app.get("/.well-known/openid-configuration", openidConfigController);
 
-app.ws("/logger", (ws, req : Request) => {
+app.ws("/logger", (ws: { route: string; }, req : Request) => {
   ws.route = "/logger";
 });
-app.ws("/observations/:ip", (ws, req : Request) => {
+app.ws("/observations/:ip", (ws: { route: string; params: ParamsDictionary; }, req : Request) => {
   ws.route = "/observations";
   ws.params = req.params;
 });

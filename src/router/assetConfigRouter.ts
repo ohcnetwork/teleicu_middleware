@@ -1,7 +1,7 @@
 import express from "express";
 import { AssetConfigController } from "../controller/AssetConfigController.js";
 
-const router = express.Router();
+const router: express.Router  = express.Router();
 
 router.get("/assets", AssetConfigController.listAssets);
 router.post("/assets", AssetConfigController.createAsset);

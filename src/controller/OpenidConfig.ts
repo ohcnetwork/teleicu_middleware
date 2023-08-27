@@ -1,7 +1,9 @@
 import fs from "fs"
 import jose from "node-jose"
+import {Request,Response, NextFunction} from 'express'
 
-export const openidConfigController = async (req, res, next) => {
+
+export const openidConfigController = async (req: Request, res: Response, next: NextFunction) => {
     /*
     This endpoint reads the `keys.json` and serves the public key 
     */

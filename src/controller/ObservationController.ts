@@ -1,18 +1,22 @@
+import {
+  getAsset,
+  getBedById,
+  getPatientId,
+} from "../utils/dailyRoundUtils.js";
+
 import { BadRequestException } from "../Exception/BadRequestException.js";
 import { NotFoundException } from "../Exception/NotFoundException.js";
-import { catchAsync } from "../utils/catchAsync.js";
-import { getAsset, getPatientId } from "../utils/dailyRoundUtils.js";
 import { ObservationsMap } from "../utils/ObservationsMap.js";
-import { filterClients } from "../utils/wsUtils.js";
+import { PrismaClient } from "@prisma/client";
 import axios from "axios";
 import { careApi } from "../utils/configs.js";
+import { catchAsync } from "../utils/catchAsync.js";
 import dayjs from "dayjs";
+import { filterClients } from "../utils/wsUtils.js";
 import { generateHeaders } from "../utils/assetUtils.js";
-import { PrismaClient } from "@prisma/client";
-import {updateObservationAuto} from '../automation/autoDataExtractor.js'
-import {makeDataDumpToJson} from './helper/makeDataDump.js'
-
 import { isValid } from "../utils/ObservationUtils.js";
+import { makeDataDumpToJson } from "./helper/makeDataDump.js";
+import { updateObservationAuto } from "../automation/autoDataExtractor.js";
 
 const prisma = new PrismaClient();
 
@@ -22,6 +26,14 @@ var staticObservations = [];
 var activeDevices = [];
 var lastRequestData = {};
 var logData = [];
+var statusData = [];
+
+// [{
+//   time: new Date(),
+//   data: {
+//     device_id: status
+//   }
+// }]
 
 // start updating after 1 minutes of starting the middleware
 let lastUpdatedToCare = new Date() - 59 * 60 * 1000;
@@ -158,7 +170,7 @@ const updateObservationsToCare = async () => {
           ">> Updating observation for device:" +
           observation.device_id
       );
-      
+
       const asset = await getAsset(observation.device_id);
       if (asset === null) {
         console.error(
@@ -169,7 +181,7 @@ const updateObservationsToCare = async () => {
         continue;
       }
 
-      const { consultation_id, patient_id } = await getPatientId(
+      const { consultation_id, patient_id, bed_id } = await getPatientId(
         asset.externalId
       );
       if (!patient_id) {
@@ -205,7 +217,7 @@ const updateObservationsToCare = async () => {
       console.log("Building Payload");
 
       // additional check to see if temperature is within range
-      console.log(data)
+      console.log(data);
       let temperature = getValueFromData(data["body-temperature1"]?.[0]);
       let temperature_measured_at = null;
       // const temperature_low_limit = data["body-temperature1"]?.[0]?.["low-limit"];
@@ -223,7 +235,8 @@ const updateObservationsToCare = async () => {
       const bp = {};
       if (
         data["blood-pressure"]?.[0]?.status === "final" &&
-        now - getTime(data?.["blood-pressure"]?.[0]?.["date-time"]) < UPDATE_INTERVAL // check if data is not stale
+        now - getTime(data?.["blood-pressure"]?.[0]?.["date-time"]) <
+          UPDATE_INTERVAL // check if data is not stale
       ) {
         bp.systolic = data["blood-pressure"]?.[0]?.systolic?.value ?? null;
         bp.diastolic = data["blood-pressure"]?.[0]?.diastolic?.value ?? null;
@@ -275,31 +288,28 @@ const updateObservationsToCare = async () => {
 
       payload.taken_at = observation.last_updated;
       payload.rounds_type = "AUTOMATED";
-      
-      try
-      {
-      // make a JSON dump of payload comparision between the v1 and v2(auto) api
 
-      const cameraParams = {
-        // TODO: change in prod
-        hostname: asset.ipAddress,
-        // hostname: "192.168.1.64",
-        // TODO: change in prod
-        username: asset.username,
-        // username: "remote_user",
-        // TODO: change in prod
-        password: asset.password,
-        // password: "2jCkrCRSeahzKEU",
-        port: asset.port ?? 80,
-      }
+      try {
+        const { camera } = await getBedById(bed_id);
 
-      console.log("updateObservationsToCare:cameraParams", cameraParams);
+        const cameraParams:{hostname:string,username?:string,password?:string,port?:number} = {
+          hostname: camera.ipAddress,
+          username: camera.username,
+          password: camera.password,
+          port: camera.port,
+        };
 
-        const v2Payload = await updateObservationAuto(cameraParams, patient_id);
-        makeDataDumpToJson(payload, v2Payload, asset.externalId, patient_id, consultation_id);
-      }
-      catch(err)
-      {
+        console.log("updateObservationsToCare:cameraParams", cameraParams);
+
+        const v2Payload = await updateObservationAuto(cameraParams, bed_id);
+        await makeDataDumpToJson(
+          payload,
+          v2Payload,
+          asset.externalId,
+          patient_id,
+          consultation_id
+        );
+      } catch (err) {
         console.log("updateObservationsToCare:Data dump failed", err);
       }
       axios
@@ -358,6 +368,52 @@ const updateObservationsToCare = async () => {
   console.log(dailyRoundTag() + "Daily round finished");
 };
 
+const filterStatusData = () => {
+  const MIN_IN_MS = 60000;
+  statusData = statusData.filter(
+    (status) => new Date() - new Date(status.time) <= 30 * MIN_IN_MS
+  );
+};
+
+const parseDataAsStatus = (data) => {
+  return {
+    time: new Date(new Date().setSeconds(0, 0)).toISOString(),
+
+    status: data.reduce((acc, device_observations) => {
+      device_observations.forEach((observation) => {
+        const { device_id, status } = observation;
+        acc[device_id] =
+          status?.toLowerCase() === "disconnected" ? "down" : "up";
+      });
+
+      return acc;
+    }, {}),
+  };
+};
+
+const addStatusData = (data) => {
+  filterStatusData();
+
+  const newStatus = parseDataAsStatus(data);
+
+  const index = statusData.findIndex(
+    (status) => status.time === newStatus.time
+  );
+
+  if (index === -1) {
+    statusData.push(newStatus);
+    return;
+  }
+
+  statusData[index] = {
+    time: newStatus.time,
+    status: {
+      ...statusData[index].status,
+      ...newStatus.status,
+    },
+  };
+};
+
 export class ObservationController {
   // static variable to hold the latest observations
 
@@ -399,6 +455,7 @@ export class ObservationController {
     lastRequestData = req.body;
     // console.log("updateObservations", req.body);
     addLogData(req.body);
+    addStatusData(req.body);
     const observations = req.body;
     // If req.body.observations is an array, then we need to loop through it and create a new observation for each one
     // If req.body.observations is a single object, then we need to create a new observation for it
@@ -452,5 +509,10 @@ export class ObservationController {
       status: "success",
       data,
     });
+  });
+
+  static status = catchAsync(async (req, res) => {
+    filterStatusData();
+    return res.json(statusData);
   });
 }

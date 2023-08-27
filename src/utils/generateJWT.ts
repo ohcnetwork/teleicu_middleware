@@ -1,7 +1,7 @@
 import fs from "fs"
 import jose from "node-jose"
 
-export const generateJWT = async (claims ) => {
+export const generateJWT = async (claims:{asset_id:string} ) => {
     /*
     Creates a JWT token with the given claims with an expiry of 1 min,
     This token can be used to call care.

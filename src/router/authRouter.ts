@@ -1,7 +1,7 @@
 import express from "express";
 import { AuthController } from "../controller/AuthController.js";
 
-const router = express.Router();
+const router:express.Router = express.Router();
 
 router.post("/verify", AuthController.verifyToken);
 

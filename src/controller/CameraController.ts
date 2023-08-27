@@ -1,8 +1,53 @@
 import { CameraUtils } from "../utils/CameraUtils.js";
 import { catchAsync } from "../utils/catchAsync.js";
+import {Request,Response} from 'express'
+
+var assets = [];
+var statuses = [];
+var fetchStatusesInterval = null;
+
+const filterStatus = () => {
+  const MIN_IN_MS = 60000;
+  statuses = statuses.filter(
+    (status) => new Date() - new Date(status.time) <= 30 * MIN_IN_MS
+  );
+};
+
+const fetchCameraStatuses = async () => {
+  filterStatus();
+
+  const cameraStatuses = await Promise.all(
+    assets.map(async (camera) => {
+      try {
+        const camParams = CameraController._getCamParams(camera);
+        const status = await CameraUtils.getStatus({ camParams });
+
+        return {
+          deviceId: camera.hostname,
+          status: status?.error === "NO error" ? "up" : "down",
+        };
+      } catch (error) {
+        console.error(error);
+
+        return {
+          deviceId: camera.hostname,
+          status: "down",
+        };
+      }
+    })
+  );
+
+  statuses.push({
+    time: new Date().toISOString(),
+    status: cameraStatuses.reduce((acc, curr) => {
+      acc[curr.deviceId] = curr.status;
+      return acc;
+    }, {}),
+  });
+};
 
 export class CameraController {
-  static _getCamParams = (body) => {
+  static _getCamParams = (body:{hostname:string,username:string,password:string,port:string}) => {
     const { hostname, username, password, port } = body;
 
     const camParams = {
@@ -49,7 +94,7 @@ export class CameraController {
    *       "200":
    *         description: Return success message
    */
-  static gotoPreset = catchAsync(async (req, res) => {
+  static gotoPreset = catchAsync(async (req:Request, res:Response) => {
     const camParams = this._getCamParams(req.body);
     const { preset } = req.body;
 
@@ -93,7 +138,7 @@ export class CameraController {
    *       "200":
    *         description: Return all available presets
    */
-  static getPresets = catchAsync(async (req, res) => {
+  static getPresets = catchAsync(async (req:Request, res:Response) => {
     const camParams = this._getCamParams(req.query);
     const presets = await CameraUtils.getPreset({ camParams });
     res.send(presets);
@@ -138,6 +183,59 @@ export class CameraController {
     const status = await CameraUtils.getStatus({ camParams });
 
     res.send(status);
+  });
+
+  /**
+   * @swagger
+   * /cameras/status:
+   *   post:
+   *     summary: "Get status of cameras"
+   *     tags:
+   *       - status
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: array
+   *             items:
+   *               type: object
+   *               properties:
+   *                 hostname:
+   *                   type: string
+   *                   description: Device Id or device IP address
+   *                 port:
+   *                   type: number
+   *                   enum: [80, 443]
+   *                 username:
+   *                   type: string
+   *                 password:
+   *                   type: string
+   *     responses:
+   *       "200":
+   *         description: Return camera statuses
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 time:
+   *                   type: string
+   *                   format: date-time
+   *                 status:
+   *                   type: object
+   *                   properties:
+   *                     device_id:
+   *                       type: string
+   *                       enum: [up, down]
+   */
+  static getCameraStatuses = catchAsync(async (req, res) => {
+    assets = req.body;
+    await fetchCameraStatuses();
+
+    clearInterval(fetchStatusesInterval);
+    fetchStatusesInterval = setInterval(fetchCameraStatuses, 60 * 1000);
+
+    return res.json(statuses);
   });
 
   /**

@@ -193,7 +193,7 @@ export const messages = [
   },
 ];
 
-export const isValid = (observation) => {
+export const isValid = (observation:any) => {
   if (
     observation === null ||
     observation === undefined ||

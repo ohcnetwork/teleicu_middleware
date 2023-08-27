@@ -1,6 +1,8 @@
 import { query, check, body, checkSchema } from "express-validator";
 import {baseCameraParamsValidators} from '../Validators/cameraValidators.js'
 
+
+
 const Observations = {
   ST: "ST",
   HEART_RATE: "heart-rate",
@@ -36,7 +38,7 @@ const baseObservationValidators = [
     .withMessage("date-time is required.")
     .isString()
     .withMessage("date-time must be string.")
-    .custom((val) => !isNaN(new Date(val)))
+    .custom((val:any) => !isNaN(new Date(val).getTime()))
     .withMessage("date-time must be valid date string."),
   // body("*.patient-id")
   //   .exists({ checkFalsy: true })

@@ -2,35 +2,43 @@ import * as onvif from "onvif";
 
 const Cam = onvif.Cam;
 
+type camparams= {
+  useSecure: boolean;
+  hostname: string;
+  username: string;
+  password: string;
+  port: number;
+}
+
 export class CameraUtils {
   constructor() {}
 
-  static gotoPreset = async ({ camParams, preset }) =>
+  static gotoPreset = async ({ camParams , preset }:{camParams:camparams,preset:number}) =>
     new Promise((resolve, reject) => {
-      new Cam(camParams, function (err) {
+      new Cam(camParams, function (err:any) {
         if (err) return reject(err);
 
         this.gotoPreset({ preset }, (data) => resolve(data));
       });
     });
 
-  static getPreset = async ({ camParams }) =>
+  static getPreset = async ({ camParams }:{camParams:camparams}) =>
     new Promise(
       (resolve, reject) =>
-        new Cam(camParams, function (err) {
+        new Cam(camParams, function (err:any) {
           if (err) return reject(err);
 
-          this.getPresets({}, (error, presets) => {
+          this.getPresets({}, (error, presets:number) => {
             if (error) return reject(error);
             if (presets) return resolve(presets);
           });
         })
     );
 
-  static getStatus = async ({ camParams }) =>
+  static getStatus = async ({ camParams }:{camParams:camparams}) =>
     new Promise(
       (resolve, reject) =>
-        new Cam(camParams, function (err) {
+        new Cam(camParams, function (err:any) {
           if (err) return reject(err);
           this.getStatus({}, (error, status) => {
             if (error) return reject(error);
@@ -39,9 +47,9 @@ export class CameraUtils {
         })
     );
 
-  static absoluteMove = async ({ camParams, x, y, zoom }) =>
+  static absoluteMove = async ({ camParams, x, y, zoom }:{camParams:{hostname:string,username?:string,password?:string,port?:number},x:number,y:number,zoom:number}) =>
     new Promise((resolve, reject) => {
-      new Cam(camParams, function (err) {
+      new Cam(camParams, function (err:any) {
         if (err) return reject(err);
         try {
           const result = this.absoluteMove({ x, y, zoom });

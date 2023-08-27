@@ -1,5 +1,8 @@
+import { Response,Request } from "express";
+
+
 export class AuthController {
-    static verifyToken = (req, res) => {
+    static verifyToken = (req: Request, res: Response) => {
         const token = ""
 
         if (this._validateJwt(token)) {
@@ -10,7 +13,7 @@ export class AuthController {
 
     }
 
-    static _validateJwt = (token) => {
+    static _validateJwt = (token:string) => {
         return true
     }
 

@@ -1,7 +1,8 @@
 import { eventType } from "../utils/eventTypeConstant.js";
 import { filterClients } from "../utils/wsUtils.js";
+import { Response,Request,NextFunction } from "express";
 
-const sendDevError = (err, res) => {
+const sendDevError = (err:any, res:Response) => {
   res.status(err.statusCode).json({
     status: err.status,
     error: err,
@@ -10,19 +11,19 @@ const sendDevError = (err, res) => {
   });
 };
 
-const sendProdError = (err, res) => {
+const sendProdError = (err:any, res:Response) => {
   res.status(err.statusCode).json({
     status: err.status,
     message: err.message,
   });
 };
 
-export const errorHandler = (err, req, res, next) => {
+export const errorHandler = (err:any, req:Request, res:Response, next:NextFunction) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "error";
 
 
-  const env = process.env.NODE_ENV;
+  const env:string | undefined = process.env.NODE_ENV;
 
   const data = {
     type: eventType.Error,

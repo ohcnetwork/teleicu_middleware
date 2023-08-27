@@ -2,7 +2,7 @@
 import { generateJWT } from "./generateJWT.js"
 import { facilityID } from "./configs.js"
 
-export const generateHeaders = async (asset_id) => {
+export const generateHeaders = async (asset_id : string) => {
   return {
     Accept: "application/json",
     Authorization: "Middleware_Bearer " + await generateJWT({ asset_id }),

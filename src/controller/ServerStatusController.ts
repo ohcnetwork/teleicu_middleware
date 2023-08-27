@@ -1,6 +1,6 @@
 import pidusage from "pidusage";
 import { loadavg } from "os";
-
+import { Request,Response } from "express";
 import { eventType } from "../utils/eventTypeConstant.js";
 import { filterClients } from "../utils/wsUtils.js";
 
@@ -8,7 +8,7 @@ export class ServerStatusController {
   static init(ws) {
     const server = ws.getWss("/logger");
     let intervalId;
-    let clients;
+    let clients:any;
     server.on("connection", () => {
       clients = filterClients(server, "/logger")
       if (!intervalId && clients.length !== 0) {
@@ -47,7 +47,7 @@ export class ServerStatusController {
     });
   }
 
-  static render(req, res) {
+  static render(req:Request, res:Response):void {
     res.render("pages/serverStatus");
   }
 }

@@ -1,8 +1,10 @@
 import morgan from "morgan";
 import { eventType } from "../utils/eventTypeConstant.js";
 import { filterClients } from "../utils/wsUtils.js";
+import { Response,Request,NextFunction } from "express";
 
-export const morganWithWs = morgan(function (tokens, req, res) {
+
+export const morganWithWs = morgan(function (tokens, req:Request, res:Response) {
   const data = {
     time: new Date().toISOString(),
     method: tokens.method(req, res),

@@ -2,18 +2,19 @@ import axios from 'axios'
 import { PrismaClient } from "@prisma/client"
 import { generateHeaders } from "../utils/assetUtils.js";
 import { careApi } from '../utils/configs.js';
+import { Response,Request,NextFunction } from 'express';
 
 
-const prisma = new PrismaClient()
+const prisma:PrismaClient = new PrismaClient()
 
-export const CareCommunicationCheckController = async (req, res, next) => {
+export const CareCommunicationCheckController = async (req:Request, res:Response, next:NextFunction) => {
   let asset = null
   if (req.query.ip || req.query.ext_id) {
     asset = await prisma.asset.findFirst({
       where: {
         OR: [
-          { ipAddress: req.query.ip },
-          { externalId: req.query.ext_id }
+          { ipAddress: req.query.ip as string },
+          { externalId: req.query.ext_id as string }
         ],
         AND: {
           deleted: false

@@ -1,15 +1,17 @@
 import fs from 'fs';
-import Axios  from 'axios';
+import Axios ,{AxiosResponse} from 'axios';
 import auth from 'http-auth';
 
-export const downloadImage = async (url, filepath, username, password)=>{
+export const downloadImage = async (url: string, filepath : string, username : string, password: string)=>{
 
-    const digest = auth.digest({
-        username,
-        password
-    });
+    const options:auth.BasicOptions = {
+            username,
+            password
+        }
 
-    const response = await Axios({
+    const digest = auth.digest(options);
+
+    const response:AxiosResponse = await Axios({
         url,
         method: 'GET',
         responseType: 'stream',
