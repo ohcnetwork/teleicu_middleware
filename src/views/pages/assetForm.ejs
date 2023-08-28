@@ -34,6 +34,14 @@
             <input class="px-2 py-1 border-2 border-black" type="text" placeholder="Asset name" name="name" id="name" value="<%- asset.name %>" />
         </div>
         <div class="flex flex-col mt-2">
+          <label for="name">Type</label>
+          <select class="p-2 border-2 border-black" name="type" id="type">
+            <% ["MONITOR", "CAMERA"].forEach((type) => { %>
+              <option class="capitalize" value="<%= type %>" selected="<%= type === asset.type %>"><%= type %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="flex flex-col mt-2">
             <label for="description">Description</label>
             <textarea class="px-2 py-1 border-2 border-black" placeholder="Description" name="description" id="description" ><%- asset.description %></textarea>
         </div>
@@ -44,6 +52,18 @@
         <div class="flex flex-col mt-2">
             <label for="ipAddress">IP Address</label>
             <input class="px-2 py-1 border-2 border-black" type="text" placeholder="127.0.0.1" name="ipAddress" id="ipAddress" value="<%- asset.ipAddress %>" />
+        </div>
+        <div class="flex flex-col mt-2">
+          <label for="ipAddress">Username</label>
+          <input class="px-2 py-1 border-2 border-black" type="text" placeholder="127.0.0.1" name="username" id="username" value="<%- asset.username %>" />
+        </div>
+        <div class="flex flex-col mt-2">
+          <label for="ipAddress">Password</label>
+          <input class="px-2 py-1 border-2 border-black" type="password" placeholder="127.0.0.1" name="password" id="password" value="<%- asset.password %>" />
+        </div>
+        <div class="flex flex-col mt-2">
+          <label for="ipAddress">Port</label>
+          <input class="px-2 py-1 border-2 border-black" type="number" placeholder="127.0.0.1" name="port" id="port" value="<%- asset.port %>" />
         </div>
         <div class="flex flex-col mt-2">
             <input class="px-4 py-2 hover:bg-green-700 bg-green-500" type="submit" value="Save" />

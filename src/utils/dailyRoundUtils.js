@@ -28,3 +28,28 @@ export const getPatientId = async (assetExternalId) => {
     return {}
   })
 }
+
+// export const getAssetsByBedId = async (bedId) => {
+//   return await axios
+//   .get(`${careApi}/api/v1/assetbed/?bed=${bedId}`, {
+//     headers: await generateHeaders(),
+//   })
+//   .then((res) => res.data)
+//   .catch((err) => {
+//     console.log(err?.response?.data);
+//     return {};
+//   });
+// };
+
+
+export const getBedById = async (bedId) => {
+  return prisma.bed.findFirst({
+    where: {
+      id: bedId,
+      deleted: false,
+    },
+    include: {
+      camera: true,
+    },
+  });
+};
