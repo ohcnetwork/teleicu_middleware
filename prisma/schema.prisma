@@ -47,12 +47,12 @@ model Bed {
 }
 
 model Preset {
-  id    Int @id @default(autoincrement())
-  x     Int
-  y     Int
-  zoom  Int @default(0)
-  bed   Bed @relation(fields: [bedId], references: [id])
-  bedId Int @unique
+  id    Int   @id @default(autoincrement())
+  x     Float
+  y     Float
+  zoom  Float @default(0.0)
+  bed   Bed   @relation(fields: [bedId], references: [id])
+  bedId Int   @unique
 }
 
 model DailyRound {
