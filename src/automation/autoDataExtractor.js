@@ -77,6 +77,9 @@ const extractData = async (camParams, monitorPreset = { x: 0, y: 0, z: 0 }) => {
   console.log("Moving to coordinates: ", monitorPreset);
   await CameraUtils.absoluteMove({ camParams, ...monitorPreset });
 
+  // TODO: replace timeout with a better solution
+  await new Promise((resolve) => setTimeout(resolve, 5000));
+
   const snapshotUrl = await CameraUtils.getSnapshotUri({ camParams });
 
   const fileName = "image-" + new Date().getTime() + ".jpeg";
