@@ -45,7 +45,7 @@ export const getPatientId = async (assetExternalId) => {
 export const getBedById = async (bedId) => {
   return prisma.bed.findFirst({
     where: {
-      id: bedId,
+      externalId: bedId,
       deleted: false,
     },
     include: {
