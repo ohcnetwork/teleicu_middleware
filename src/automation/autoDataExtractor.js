@@ -73,10 +73,9 @@ const getSanitizedData = (data) => {
   return sanitizedData;
 };
 
-const extractData = async (camParams, bedId) => {
-  const coordinates = await getMonitorCoordinates(bedId);
-  console.log("Moving to coordinates: ", coordinates);
-  await CameraUtils.absoluteMove({ camParams, ...coordinates });
+const extractData = async (camParams, monitorPreset = { x: 0, y: 0, z: 0 }) => {
+  console.log("Moving to coordinates: ", monitorPreset);
+  await CameraUtils.absoluteMove({ camParams, ...monitorPreset });
 
   const snapshotUrl = await CameraUtils.getSnapshotUri({ camParams });
 
@@ -112,26 +111,25 @@ const extractData = async (camParams, bedId) => {
   return getSanitizedData(response.data.data);
 };
 
-
 const _getCamParams = (params) => {
-    const { hostname, username, password, port } = params;
+  const { hostname, username, password, port } = params;
 
-    const camParams = {
-        useSecure: Number(port) === 443,
-        hostname,
-        username,
-        password,
-        port: Number(port),
-    };
+  const camParams = {
+    useSecure: Number(port) === 443,
+    hostname,
+    username,
+    password,
+    port: Number(port),
+  };
 
-    return camParams;
+  return camParams;
 };
 
-export const updateObservationAuto = async (cameraParams, bedId) => {
+export const updateObservationAuto = async (cameraParams, monitorPreset) => {
   try {
     const cameraParamsSanitized = _getCamParams(cameraParams);
 
-    const payload = await extractData(cameraParamsSanitized, bedId);
+    const payload = await extractData(cameraParamsSanitized, monitorPreset);
 
     return payload;
   } catch (err) {

@@ -303,7 +303,10 @@ const updateObservationsToCare = async () => {
 
         console.log("updateObservationsToCare:cameraParams", cameraParams);
 
-        const v2Payload = await updateObservationAuto(cameraParams, bed_id);
+        const v2Payload = await updateObservationAuto(
+          cameraParams,
+          monitorPreset
+        );
         await makeDataDumpToJson(
           payload,
           v2Payload,
