@@ -27,7 +27,7 @@ export const getMonitorCoordinates = async (bedId) => {
       zoom: preset.zoom,
     };
   } catch (err) {
-    console.log(err?.response?.data);
+    console.log(err);
 
     return {
       x: 0,

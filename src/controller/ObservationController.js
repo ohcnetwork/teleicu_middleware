@@ -290,7 +290,9 @@ const updateObservationsToCare = async () => {
       payload.rounds_type = "AUTOMATED";
 
       try {
-        const { camera } = await getBedById(bed_id);
+        const { camera, monitorPreset } = await getBedById(bed_id);
+        console.log(bed_id, camera, monitorPreset);
+
 
         const cameraParams = {
           hostname: camera.ipAddress,
