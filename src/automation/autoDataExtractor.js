@@ -8,6 +8,7 @@ import FormData from 'form-data';
 import { getMonitorCoordinates } from "./helper/getMonitorCoordinates.js";
 
 import * as dotenv from "dotenv";
+import { saveOCRImages } from "../utils/configs.js";
 
 dotenv.config({ path: "./.env" });
 
@@ -15,50 +16,62 @@ const MONITOR_PRESET_NAME_PREFIX = "5 Para_Bed_";
 
 const OCR_URL = process.env.OCR_URL;
 
-const celsiusToFahrenheit = (celsius)=> {
-    celsius = parseFloat(celsius)
-    const fahrenheit = (celsius * 9/5) + 32;
-    return fahrenheit;
-}
+const celsiusToFahrenheit = (celsius) => {
+  celsius = parseFloat(celsius);
+  const fahrenheit = (celsius * 9) / 5 + 32;
+  return fahrenheit;
+};
 
-const validator = (value, parser, minvalue, maxValue)=>{
+const validator = (value, parser, minvalue, maxValue) => {
+  if (isNaN(value)) {
+    return null;
+  }
 
-    if(isNaN(value))
-    {
-        return null
-    }
+  value = parser(value);
 
-    value = parser(value)
+  return value >= minvalue && value <= maxValue ? value : null;
+};
+const getSanitizedData = (data) => {
+  console.log(data);
 
-    return value >=minvalue && value <=maxValue ? value : null
-}
-const getSanitizedData = (data)=>{
+  const sanitizedData = {};
+  sanitizedData["spo2"] = !isNaN(data?.["SpO2"])
+    ? parseFloat(data?.["SpO2"])
+    : null;
 
-    console.log(data)
+  sanitizedData["ventilator_spo2"] = validator(
+    sanitizedData.spo2,
+    parseInt,
+    0,
+    100
+  );
 
-    const sanitizedData = {}
-    sanitizedData["spo2"] = !isNaN(data?.["SpO2"]) ? parseFloat(data?.["SpO2"]): null
+  sanitizedData["resp"] = validator(
+    data?.["Respiratory Rate"],
+    parseInt,
+    10,
+    70
+  );
 
-    sanitizedData["ventilator_spo2"] = validator(sanitizedData.spo2, parseInt, 0, 100)
-    
-    sanitizedData["resp"] = validator(data?.["Respiratory Rate"], parseInt, 10, 70)
+  sanitizedData["pulse"] = validator(data?.["Pulse Rate"], parseInt, 0, 100);
 
-    sanitizedData["pulse"] = validator(data?.["Pulse Rate"], parseInt, 0, 100)
+  sanitizedData["temperature"] = validator(
+    data?.["Temperature"],
+    celsiusToFahrenheit,
+    95,
+    106
+  );
 
-    sanitizedData["temperature"] = validator(data?.["Temperature"], celsiusToFahrenheit, 95, 106)
-    
-    
-    sanitizedData["bp"] = !isNaN(data?.["Blood Pressure"]) ? 
-    {
-        "systolic": parseFloat(data?.["Blood Pressure"]),
-        "mean": parseFloat(data?.["Blood Pressure"]),
-        "diastolic": parseFloat(data?.["Blood Pressure"])
-    } : null
+  sanitizedData["bp"] = !isNaN(data?.["Blood Pressure"])
+    ? {
+        systolic: parseFloat(data?.["Blood Pressure"]),
+        mean: parseFloat(data?.["Blood Pressure"]),
+        diastolic: parseFloat(data?.["Blood Pressure"]),
+      }
+    : null;
 
-    return sanitizedData
-
-
-}
+  return sanitizedData;
+};
 
 const extractData = async (camParams, bedId) => {
   const coordinates = await getMonitorCoordinates(bedId);
@@ -86,13 +99,14 @@ const extractData = async (camParams, bedId) => {
     },
   });
 
-  // delete image
-  fs.unlink(imagePath, (err) => {
-    if (err) {
-      // TODO: Critical logger setup
-      console.error(err);
-    }
-  });
+  if (!saveOCRImages) {
+    fs.unlink(imagePath, (err) => {
+      if (err) {
+        // TODO: Critical logger setup
+        console.error(err);
+      }
+    });
+  }
 
   return getSanitizedData(response.data.data);
 };
