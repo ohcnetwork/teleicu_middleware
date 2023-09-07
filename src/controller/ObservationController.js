@@ -291,8 +291,6 @@ const updateObservationsToCare = async () => {
 
       try {
         const { camera, monitorPreset } = await getBedById(bed_id);
-        console.log(bed_id, camera, monitorPreset);
-
 
         const cameraParams = {
           hostname: camera.ipAddress,
