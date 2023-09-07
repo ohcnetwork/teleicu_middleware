@@ -35,7 +35,7 @@ export const makeDataDumpToJson = async (
 
     const params = {
       Bucket: s3BucketName,
-      Key: assetExternalId,
+      Key: `${assetExternalId}--${new Date().getTime()}.json`,
       Body: JSON.stringify(dataDump),
     };
 
