@@ -75,6 +75,7 @@ const getSanitizedData = (data) => {
 
 const extractData = async (camParams, bedId) => {
   const coordinates = await getMonitorCoordinates(bedId);
+  console.log("Moving to coordinates: ", coordinates);
   await CameraUtils.absoluteMove({ camParams, ...coordinates });
 
   const snapshotUrl = await CameraUtils.getSnapshotUri({ camParams });
