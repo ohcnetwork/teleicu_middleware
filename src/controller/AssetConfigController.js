@@ -99,24 +99,38 @@ export class AssetConfigController {
   }
 
   static updateAsset = async (req, res) => {
-    const { name, description, externalId, ipAddress } = req.body;
-    prisma.asset.update({
-      where: {
-        id: Number(req.params.id)
-      },
-      data: {
-        name,
-        description,
-        externalId,
-        ipAddress,
-        updatedAt: new Date()
-      }
-    }).then(_ => {
-      res.redirect("/assets");
-    }).catch(err => {
-      req.flash("error", err.message);
-      res.redirect(`/assets/${req.params.id}`);
-    })
+    const {
+      name,
+      description,
+      externalId,
+      ipAddress,
+      username,
+      password,
+      port,
+    } = req.body;
+    prisma.asset
+      .update({
+        where: {
+          id: Number(req.params.id),
+        },
+        data: {
+          name,
+          description,
+          externalId,
+          ipAddress,
+          updatedAt: new Date(),
+          username,
+          password,
+          port: Number(port),
+        },
+      })
+      .then((_) => {
+        res.redirect("/assets");
+      })
+      .catch((err) => {
+        req.flash("error", err.message);
+        res.redirect(`/assets/${req.params.id}`);
+      });
   }
 
   static confirmDeleteAsset = async (req, res) => {
