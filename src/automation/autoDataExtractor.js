@@ -78,7 +78,7 @@ const extractData = async (camParams, monitorPreset = { x: 0, y: 0, z: 0 }) => {
   await CameraUtils.absoluteMove({ camParams, ...monitorPreset });
 
   // TODO: replace timeout with a better solution
-  await new Promise((resolve) => setTimeout(resolve, 5000));
+  await new Promise((resolve) => setTimeout(resolve, 10 * 1000));
 
   const snapshotUrl = await CameraUtils.getSnapshotUri({ camParams });
 
