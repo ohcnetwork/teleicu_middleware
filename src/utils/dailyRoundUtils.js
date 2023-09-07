@@ -50,6 +50,7 @@ export const getBedById = async (bedId) => {
     },
     include: {
       camera: true,
+      monitorPreset: true,
     },
   });
 };

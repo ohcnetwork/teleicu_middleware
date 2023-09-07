@@ -7,7 +7,6 @@ export const getMonitorCoordinates = async (bedId) => {
     const preset = await prisma.preset.findFirst({
       where: {
         bed: { externalId: bedId },
-        deleted: false,
       },
     });
 
