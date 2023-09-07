@@ -10,3 +10,5 @@ export const s3Endpoint = process.env.S3_ENDPOINT || ({
 export const s3BucketName = process.env.S3_BUCKET_NAME;
 export const s3AccessKeyId = process.env.S3_ACCESS_KEY_ID;
 export const s3SecretAccessKey = process.env.S3_SECRET_ACCESS_KEY;
+
+export const saveOCRImages = process.env.SAVE_OCR_IMAGES === "true";
