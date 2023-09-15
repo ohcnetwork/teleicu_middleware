@@ -70,7 +70,7 @@ Sentry.init({
     new Tracing.Integrations.Express({ app }),
   ],
   environment: process.env.SENTRY_ENV,
-  tracesSampleRate: 1.0,
+  tracesSampleRate: parseFloat(process.env.SENTRY_SAMPLE_RATE) || 0.01,
 });
 
 app.use(Sentry.Handlers.requestHandler());
