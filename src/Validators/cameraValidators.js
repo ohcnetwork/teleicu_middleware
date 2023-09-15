@@ -46,8 +46,6 @@ export const baseGetCameraParamsValidators = [
     .withMessage("port must be integer."),
 ];
 
-
-
 export const gotoPresetValidator = [
   ...baseCameraParamsValidators,
   body("preset")

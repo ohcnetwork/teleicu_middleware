@@ -3,7 +3,7 @@ import * as onvif from "onvif";
 const Cam = onvif.Cam;
 
 export class CameraUtils {
-  constructor() {}
+  constructor() { }
 
   static gotoPreset = async ({ camParams, preset }) =>
     new Promise((resolve, reject) => {
@@ -30,7 +30,7 @@ export class CameraUtils {
   static getStatus = async ({ camParams }) =>
     new Promise(
       (resolve, reject) =>
-        new Cam(camParams, function (err) {
+        new Cam({ ...camParams, timeout: 5000 }, function (err) {
           if (err) return reject(err);
           this.getStatus({}, (error, status) => {
             if (error) return reject(error);
@@ -70,7 +70,7 @@ export class CameraUtils {
       new Cam(camParams, function (err) {
         if (err) return reject(err);
         try {
-          const result = this.setPreset({ presetName }, () => {});
+          const result = this.setPreset({ presetName }, () => { });
           resolve(result);
         } catch (error) {
           reject(error);
@@ -78,7 +78,7 @@ export class CameraUtils {
       });
     });
 
-  static getSnapshotUri = async ({ camParams }) => 
+  static getSnapshotUri = async ({ camParams }) =>
     new Promise((resolve, reject) => {
       new Cam(camParams, function (err) {
         if (err) return reject(err);
@@ -95,5 +95,5 @@ export class CameraUtils {
 
 
 
-  
+
 }
