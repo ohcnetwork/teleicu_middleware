@@ -12,3 +12,5 @@ export const s3AccessKeyId = process.env.S3_ACCESS_KEY_ID;
 export const s3SecretAccessKey = process.env.S3_SECRET_ACCESS_KEY;
 
 export const saveOCRImages = process.env.SAVE_OCR_IMAGES === "true";
+export const waitBeforeOCRCapture =
+  parseInt(process.env.WAIT_BEFORE_OCR_CAPTURE) || 0;
