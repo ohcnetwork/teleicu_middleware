@@ -8,7 +8,7 @@ import FormData from 'form-data';
 import { getMonitorCoordinates } from "./helper/getMonitorCoordinates.js";
 
 import * as dotenv from "dotenv";
-import { saveOCRImages } from "../utils/configs.js";
+import { saveOCRImages, waitBeforeOCRCapture } from "../utils/configs.js";
 
 dotenv.config({ path: "./.env" });
 
@@ -32,7 +32,7 @@ const validator = (value, parser, minvalue, maxValue) => {
   return value >= minvalue && value <= maxValue ? value : null;
 };
 const getSanitizedData = (data) => {
-  console.log(data);
+  console.log("Data from OCR: ", data);
 
   const sanitizedData = {};
   sanitizedData["spo2"] = !isNaN(data?.["SpO2"])
@@ -78,7 +78,9 @@ const extractData = async (camParams, monitorPreset = { x: 0, y: 0, z: 0 }) => {
   await CameraUtils.absoluteMove({ camParams, ...monitorPreset });
 
   // TODO: replace timeout with a better solution
-  await new Promise((resolve) => setTimeout(resolve, 10 * 1000));
+  await new Promise((resolve) =>
+    setTimeout(resolve, waitBeforeOCRCapture * 1000)
+  );
 
   const snapshotUrl = await CameraUtils.getSnapshotUri({ camParams });
 
