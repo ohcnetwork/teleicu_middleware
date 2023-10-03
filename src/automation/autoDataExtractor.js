@@ -1,11 +1,9 @@
-
 import { CameraUtils } from "../utils/CameraUtils.js";
 import { downloadImage } from "./helper/downloadImageWithDigestRouter.js";
-import axios  from 'axios';
+import axios from "axios";
 import path from "path";
-import fs from 'fs';
-import FormData from 'form-data';
-import { getMonitorCoordinates } from "./helper/getMonitorCoordinates.js";
+import fs from "fs";
+import FormData from "form-data";
 
 import * as dotenv from "dotenv";
 import { saveOCRImages, waitBeforeOCRCapture } from "../utils/configs.js";
@@ -77,12 +75,16 @@ const extractData = async (camParams, monitorPreset = { x: 0, y: 0, z: 0 }) => {
   console.log("Moving to coordinates: ", monitorPreset);
   await CameraUtils.absoluteMove({ camParams, ...monitorPreset });
 
+  CameraUtils.lockCamera(cameraParams.hostname);
+
   // TODO: replace timeout with a better solution
   await new Promise((resolve) =>
     setTimeout(resolve, waitBeforeOCRCapture * 1000)
   );
 
   const snapshotUrl = await CameraUtils.getSnapshotUri({ camParams });
+
+  CameraUtils.unlockCamera(cameraParams.hostname);
 
   const fileName = "image-" + new Date().getTime() + ".jpeg";
   const imagePath = path.resolve("images", fileName);
@@ -149,4 +151,3 @@ export const updateObservationAuto = async (cameraParams, monitorPreset) => {
     };
   }
 };
-
