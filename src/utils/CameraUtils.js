@@ -2,13 +2,29 @@ import * as onvif from "onvif";
 
 const Cam = onvif.Cam;
 
+const cameraLock = {};
+
 export class CameraUtils {
-  constructor() { }
+  constructor() {}
+
+  static lockCamera = (hostname) => {
+    cameraLock[hostname] = true;
+  };
+
+  static unlockCamera = (hostname) => {
+    cameraLock[hostname] = false;
+  };
 
   static gotoPreset = async ({ camParams, preset }) =>
     new Promise((resolve, reject) => {
       new Cam(camParams, function (err) {
-        if (err) return reject(err);
+        if (err) {
+          return reject(err);
+        }
+
+        if (cameraLock[camParams.hostname]) {
+          return reject({ error: "Camera is locked" });
+        }
 
         this.gotoPreset({ preset }, (data) => resolve(data));
       });
@@ -42,7 +58,14 @@ export class CameraUtils {
   static absoluteMove = async ({ camParams, x, y, zoom }) =>
     new Promise((resolve, reject) => {
       new Cam(camParams, function (err) {
-        if (err) return reject(err);
+        if (err) {
+          return reject(err);
+        }
+
+        if (cameraLock[camParams.hostname]) {
+          return reject({ error: "Camera is locked" });
+        }
+
         try {
           const result = this.absoluteMove({ x, y, zoom });
           resolve(result);
@@ -55,7 +78,14 @@ export class CameraUtils {
   static relativeMove = async ({ camParams, x, y, zoom }) =>
     new Promise((resolve, reject) => {
       new Cam(camParams, function (err) {
-        if (err) return reject(err);
+        if (err) {
+          return reject(err);
+        }
+
+        if (cameraLock[camParams.hostname]) {
+          return reject({ error: "Camera is locked" });
+        }
+
         try {
           const result = this.relativeMove({ x, y, zoom });
           resolve(result);
@@ -70,7 +100,7 @@ export class CameraUtils {
       new Cam(camParams, function (err) {
         if (err) return reject(err);
         try {
-          const result = this.setPreset({ presetName }, () => { });
+          const result = this.setPreset({ presetName }, () => {});
           resolve(result);
         } catch (error) {
           reject(error);
@@ -92,8 +122,4 @@ export class CameraUtils {
         }
       });
     });
-
-
-
-
 }

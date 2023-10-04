@@ -1,11 +1,9 @@
-
 import { CameraUtils } from "../utils/CameraUtils.js";
 import { downloadImage } from "./helper/downloadImageWithDigestRouter.js";
-import axios  from 'axios';
+import axios from "axios";
 import path from "path";
-import fs from 'fs';
-import FormData from 'form-data';
-import { getMonitorCoordinates } from "./helper/getMonitorCoordinates.js";
+import fs from "fs";
+import FormData from "form-data";
 
 import * as dotenv from "dotenv";
 import { saveOCRImages, waitBeforeOCRCapture } from "../utils/configs.js";
@@ -74,46 +72,63 @@ const getSanitizedData = (data) => {
 };
 
 const extractData = async (camParams, monitorPreset = { x: 0, y: 0, z: 0 }) => {
-  console.log("Moving to coordinates: ", monitorPreset);
-  await CameraUtils.absoluteMove({ camParams, ...monitorPreset });
+  try {
+    console.log("Moving to coordinates: ", monitorPreset);
+    await CameraUtils.absoluteMove({ camParams, ...monitorPreset });
 
-  // TODO: replace timeout with a better solution
-  await new Promise((resolve) =>
-    setTimeout(resolve, waitBeforeOCRCapture * 1000)
-  );
+    CameraUtils.lockCamera(cameraParams.hostname);
 
-  const snapshotUrl = await CameraUtils.getSnapshotUri({ camParams });
+    // TODO: replace timeout with a better solution
+    await new Promise((resolve) =>
+      setTimeout(resolve, waitBeforeOCRCapture * 1000)
+    );
 
-  const fileName = "image-" + new Date().getTime() + ".jpeg";
-  const imagePath = path.resolve("images", fileName);
-  await downloadImage(
-    snapshotUrl.uri,
-    imagePath,
-    camParams.username,
-    camParams.password
-  );
-  // const testImg = path.resolve("images", "test.png")
+    const snapshotUrl = await CameraUtils.getSnapshotUri({ camParams });
 
-  // POST request with image to ocr
-  const bodyFormData = new FormData();
-  bodyFormData.append("image", fs.createReadStream(imagePath));
+    CameraUtils.unlockCamera(cameraParams.hostname);
 
-  const response = await axios.post(OCR_URL, bodyFormData, {
-    headers: {
-      ...bodyFormData.getHeaders(),
-    },
-  });
+    const fileName = "image-" + new Date().getTime() + ".jpeg";
+    const imagePath = path.resolve("images", fileName);
+    await downloadImage(
+      snapshotUrl.uri,
+      imagePath,
+      camParams.username,
+      camParams.password
+    );
+    // const testImg = path.resolve("images", "test.png")
 
-  if (!saveOCRImages) {
-    fs.unlink(imagePath, (err) => {
-      if (err) {
-        // TODO: Critical logger setup
-        console.error(err);
-      }
+    // POST request with image to ocr
+    const bodyFormData = new FormData();
+    bodyFormData.append("image", fs.createReadStream(imagePath));
+
+    const response = await axios.post(OCR_URL, bodyFormData, {
+      headers: {
+        ...bodyFormData.getHeaders(),
+      },
     });
-  }
 
-  return getSanitizedData(response.data.data);
+    if (!saveOCRImages) {
+      fs.unlink(imagePath, (err) => {
+        if (err) {
+          // TODO: Critical logger setup
+          console.error(err);
+        }
+      });
+    }
+
+    return getSanitizedData(response.data.data);
+  } catch (err) {
+    console.log("Error in extractData: ", err);
+    CameraUtils.unlockCamera(cameraParams.hostname);
+    return {
+      spo2: null,
+      ventilator_spo2: null,
+      resp: null,
+      pulse: null,
+      temperature: null,
+      bp: null,
+    };
+  }
 };
 
 const _getCamParams = (params) => {
@@ -149,4 +164,3 @@ export const updateObservationAuto = async (cameraParams, monitorPreset) => {
     };
   }
 };
-
