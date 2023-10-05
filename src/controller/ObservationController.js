@@ -27,13 +27,7 @@ var activeDevices = [];
 var lastRequestData = {};
 var logData = [];
 var statusData = [];
-
-// [{
-//   time: new Date(),
-//   data: {
-//     device_id: status
-//   }
-// }]
+var lastObservationData = {};
 
 // start updating after 1 minutes of starting the middleware
 let lastUpdatedToCare = new Date() - 59 * 60 * 1000;
@@ -110,6 +104,27 @@ const addLogData = (newData) => {
       data: newData,
     },
   ];
+};
+
+const updateLastObservationData = (flattenedObservations, skipEmpty = true) => {
+  flattenedObservations.forEach((observation) => {
+    const observationId =
+      observation.observation_id === "waveform"
+        ? `waveform_${observation["wave-name"]}`
+        : observation.observation_id;
+
+    if (
+      skipEmpty &&
+      !observation.value &&
+      !observation.data &&
+      observation.status !== "final"
+    ) {
+      return;
+    }
+
+    lastObservationData[observationId] ??= {};
+    lastObservationData[observationId][observation.device_id] = observation;
+  });
 };
 
 const updateObservationsToCare = async () => {
@@ -472,6 +487,7 @@ export class ObservationController {
 
     const flattenedObservations = flattenObservations(observations);
 
+    updateLastObservationData(flattenedObservations);
     this.latestObservation.set(flattenedObservations);
 
     filterClients(req.wsInstance.getWss(), "/observations").forEach(
@@ -479,6 +495,14 @@ export class ObservationController {
         const filteredObservations = flattenedObservations?.filter(
           (observation) => observation?.device_id === client?.params?.ip
         );
+
+        if (lastObservationData["blood-pressure"]?.[client?.params?.ip]) {
+          console.log("Adding BP");
+          filteredObservations?.push(
+            lastObservationData["blood-pressure"][client?.params?.ip]
+          );
+        }
+
         if (filteredObservations.length) {
           client.send(JSON.stringify(filteredObservations));
         }
