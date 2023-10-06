@@ -496,8 +496,17 @@ export class ObservationController {
           (observation) => observation?.device_id === client?.params?.ip
         );
 
-        if (lastObservationData["blood-pressure"]?.[client?.params?.ip]) {
-          console.log("Adding BP");
+        if (
+          lastObservationData["blood-pressure"]?.[client?.params?.ip] &&
+          dayjs().diff(
+            dayjs(
+              lastObservationData["blood-pressure"]?.[client?.params?.ip][
+                "date-time"
+              ]
+            ),
+            "minutes"
+          ) < 30
+        ) {
           filteredObservations?.push(
             lastObservationData["blood-pressure"][client?.params?.ip]
           );
