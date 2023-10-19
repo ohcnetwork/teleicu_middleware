@@ -76,7 +76,7 @@ const extractData = async (camParams, monitorPreset = { x: 0, y: 0, z: 0 }) => {
     console.log("Moving to coordinates: ", monitorPreset);
     await CameraUtils.absoluteMove({ camParams, ...monitorPreset });
 
-    CameraUtils.lockCamera(cameraParams.hostname);
+    CameraUtils.lockCamera(camParams.hostname);
 
     // TODO: replace timeout with a better solution
     await new Promise((resolve) =>
@@ -85,7 +85,7 @@ const extractData = async (camParams, monitorPreset = { x: 0, y: 0, z: 0 }) => {
 
     const snapshotUrl = await CameraUtils.getSnapshotUri({ camParams });
 
-    CameraUtils.unlockCamera(cameraParams.hostname);
+    CameraUtils.unlockCamera(camParams.hostname);
 
     const fileName = "image-" + new Date().getTime() + ".jpeg";
     const imagePath = path.resolve("images", fileName);
@@ -119,7 +119,7 @@ const extractData = async (camParams, monitorPreset = { x: 0, y: 0, z: 0 }) => {
     return getSanitizedData(response.data.data);
   } catch (err) {
     console.log("Error in extractData: ", err);
-    CameraUtils.unlockCamera(cameraParams.hostname);
+    CameraUtils.unlockCamera(camParams.hostname);
     return {
       spo2: null,
       ventilator_spo2: null,
