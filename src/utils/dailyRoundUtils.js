@@ -20,13 +20,19 @@ export const getAsset = async (assetIp) => {
 }
 
 export const getPatientId = async (assetExternalId) => {
-  return await axios.get(`${careApi}/api/v1/consultation/patient_from_asset/`,
-    { headers: await generateHeaders(assetExternalId) }
-  ).then(res => res.data).catch(err => {
-    console.log("[Daily Round] vvv")
-    console.log(err?.response?.data)
-    return {}
-  })
+  return await axios
+    .get(`${careApi}/api/v1/consultation/patient_from_asset/`, {
+      headers: await generateHeaders(assetExternalId),
+    })
+    .then((res) => res.data)
+    .catch((err) => {
+      console.log(
+        "[Daily Round] Failed to fetch patient_id from care",
+        err.message
+      );
+      console.log(err?.response?.status, err?.response?.data);
+      return {};
+    });
 }
 
 // export const getAssetsByBedId = async (bedId) => {
