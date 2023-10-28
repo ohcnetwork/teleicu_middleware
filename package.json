@@ -17,6 +17,7 @@
     "form-data": "^4.0.0",
     "helmet": "^4.6.0",
     "lodash.groupby": "^4.6.0",
+    "module-alias": "^2.2.3",
     "morgan": "^1.10.0",
     "node-jose": "^2.1.0",
     "onvif": "^0.6.5",
@@ -56,6 +57,7 @@
     "@types/express-session": "^1.17.9",
     "@types/express-ws": "^3.0.1",
     "@types/lodash.groupby": "^4.6.8",
+    "@types/module-alias": "^2.0.3",
     "@types/morgan": "^1.9.7",
     "@types/node-jose": "^1.1.12",
     "@types/pidusage": "^2.0.4",
@@ -65,5 +67,8 @@
     "prisma": "^4.15.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2"
+  },
+  "_moduleAliases": {
+    "@": "dist/src"
   }
 }
