@@ -27,8 +27,8 @@
   "scripts": {
     "start": "ts-node dist/server.ts",
     "dev": "nodemon src/server.ts",
-    "build": "tsc",
-    "start:prod": "prisma migrate deploy && npm run build && node dist/server.js",
+    "build": "prisma generate && tsc",
+    "start:prod": "prisma migrate deploy && npm run build && node dist/src/server.js",
     "start:dev": "prisma migrate dev && npm run dev"
   },
   "name": "teleicu_middleware",

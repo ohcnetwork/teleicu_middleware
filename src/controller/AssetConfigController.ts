@@ -61,10 +61,10 @@ export class AssetConfigController {
           port: Number(port),
         },
       })
-      .then((_) => {
+      .then(() => {
         res.redirect("/assets");
       })
-      .catch((err) => {
+      .catch((err: any) => {
         req.flash("error", err.message);
         res.redirect("/assets");
       });
@@ -123,10 +123,10 @@ export class AssetConfigController {
           port: Number(port),
         },
       })
-      .then((_) => {
+      .then(() => {
         res.redirect("/assets");
       })
-      .catch((err) => {
+      .catch((err: any) => {
         req.flash("error", err.message);
         res.redirect(`/assets/${req.params.id}`);
       });
@@ -151,10 +151,10 @@ export class AssetConfigController {
           deleted: true,
         },
       })
-      .then((_) => {
+      .then(() => {
         res.redirect("/assets");
       })
-      .catch((err) => {
+      .catch((err: any) => {
         req.flash("error", err.message);
         res.redirect("/assets");
       });

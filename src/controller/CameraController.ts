@@ -5,7 +5,7 @@ import type { Request, Response } from "express";
 
 var assets: CameraAsset[] = [];
 var statuses: CameraStatus[] = [];
-var fetchStatusesInterval: NodeJS.Timer | undefined;
+var fetchStatusesInterval: NodeJS.Timeout | undefined;
 
 const filterStatus = () => {
   const MIN_IN_MS = 60000;
