@@ -15,7 +15,8 @@ export const makeDataDumpToJson = async (
   v2Payload,
   assetExternalId,
   patient_id,
-  consultation_id
+  consultation_id,
+  image
 ) => {
   try {
     const s3 = new AWS.S3({
@@ -26,17 +27,19 @@ export const makeDataDumpToJson = async (
     });
 
     const dataDump = {
-      assetExternalId: assetExternalId,
-      patient_id: patient_id,
-      consultation_id: consultation_id,
-      v1Payload: v1Payload,
-      v2Payload: v2Payload,
+      assetExternalId,
+      patient_id,
+      consultation_id,
+      v1Payload,
+      v2Payload,
+      image,
     };
 
     const params = {
       Bucket: s3BucketName,
       Key: `${assetExternalId}--${new Date().getTime()}.json`,
       Body: JSON.stringify(dataDump),
+      ContentType: "application/json",
     };
 
     await new Promise((resolve, reject) => {

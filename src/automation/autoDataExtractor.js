@@ -71,6 +71,20 @@ const getSanitizedData = (data) => {
   return sanitizedData;
 };
 
+const fileToBase64 = (filePath) => {
+  try {
+    if (!fs.existsSync(filePath)) {
+      return null;
+    }
+
+    const buffer = fs.readFileSync(filePath);
+    return buffer.toString("base64");
+  } catch (err) {
+    console.log("Error in fileToBase64: ", err);
+    return null;
+  }
+};
+
 const extractData = async (camParams, monitorPreset = { x: 0, y: 0, z: 0 }) => {
   try {
     console.log("Moving to coordinates: ", monitorPreset);
@@ -116,18 +130,21 @@ const extractData = async (camParams, monitorPreset = { x: 0, y: 0, z: 0 }) => {
       });
     }
 
-    return getSanitizedData(response.data.data);
+    return [getSanitizedData(response.data.data), fileToBase64(imagePath)];
   } catch (err) {
     console.log("Error in extractData: ", err);
     CameraUtils.unlockCamera(camParams.hostname);
-    return {
-      spo2: null,
-      ventilator_spo2: null,
-      resp: null,
-      pulse: null,
-      temperature: null,
-      bp: null,
-    };
+    return [
+      {
+        spo2: null,
+        ventilator_spo2: null,
+        resp: null,
+        pulse: null,
+        temperature: null,
+        bp: null,
+      },
+      null,
+    ];
   }
 };
 
@@ -154,13 +171,16 @@ export const updateObservationAuto = async (cameraParams, monitorPreset) => {
     return payload;
   } catch (err) {
     console.log(err);
-    return {
-      spo2: null,
-      ventilator_spo2: null,
-      resp: null,
-      pulse: null,
-      temperature: null,
-      bp: null,
-    };
+    return [
+      {
+        spo2: null,
+        ventilator_spo2: null,
+        resp: null,
+        pulse: null,
+        temperature: null,
+        bp: null,
+      },
+      null,
+    ];
   }
 };

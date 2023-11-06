@@ -316,7 +316,7 @@ const updateObservationsToCare = async () => {
 
         console.log("updateObservationsToCare:cameraParams", cameraParams);
 
-        const v2Payload = await updateObservationAuto(
+        const [v2Payload, b64Image] = await updateObservationAuto(
           cameraParams,
           monitorPreset
         );
@@ -325,7 +325,8 @@ const updateObservationsToCare = async () => {
           v2Payload,
           asset.externalId,
           patient_id,
-          consultation_id
+          consultation_id,
+          b64Image
         );
       } catch (err) {
         console.log("updateObservationsToCare:Data dump failed", err);
