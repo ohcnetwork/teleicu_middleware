@@ -42,7 +42,7 @@ const ws = enableWs(appBase);
 const { app } = ws;
 
 app.set("view engine", "ejs");
-app.set("views", path.join(path.resolve(), "src/views"));
+app.set("views", path.resolve(__dirname, "views"));
 
 // flash messages
 app.use(

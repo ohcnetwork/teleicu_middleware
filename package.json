@@ -28,7 +28,7 @@
   "scripts": {
     "start": "ts-node dist/server.ts",
     "dev": "nodemon src/server.ts",
-    "build": "npx prisma generate && tsc",
+    "build": "npx prisma generate && tsc && cpx \"src/**/*.ejs\" dist/src",
     "start:prod": "npx prisma generate && npx prisma migrate deploy && node dist/src/server.js",
     "start:dev": "npx prisma migrate dev && npm run dev"
   },
@@ -63,6 +63,7 @@
     "@types/pidusage": "^2.0.4",
     "@types/swagger-jsdoc": "^6.0.2",
     "@types/swagger-ui-express": "^4.1.5",
+    "cpx": "^1.5.0",
     "nodemon": "^2.0.19",
     "prisma": "^4.15.0",
     "ts-node": "^10.9.1",
