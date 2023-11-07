@@ -526,17 +526,7 @@ export class ObservationController {
             observation?.device_id === client?.params?.ip
         );
 
-        if (
-          lastObservationData["blood-pressure"]?.[client?.params?.ip!] &&
-          dayjs().diff(
-            dayjs(
-              lastObservationData["blood-pressure"]?.[client?.params?.ip!][
-                "date-time"
-              ]
-            ),
-            "minutes"
-          ) < 30
-        ) {
+        if (lastObservationData["blood-pressure"]?.[client?.params?.ip!]) {
           filteredObservations?.push(
             lastObservationData["blood-pressure"][client?.params?.ip!]
           );
