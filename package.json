@@ -28,9 +28,9 @@
   "scripts": {
     "start": "ts-node dist/server.ts",
     "dev": "nodemon src/server.ts",
-    "build": "prisma generate && tsc",
-    "start:prod": "prisma migrate deploy && npm run build && node dist/src/server.js",
-    "start:dev": "prisma migrate dev && npm run dev"
+    "build": "npx prisma generate && tsc",
+    "start:prod": "npx prisma generate && npx prisma migrate deploy && node dist/src/server.js",
+    "start:dev": "npx prisma migrate dev && npm run dev"
   },
   "name": "teleicu_middleware",
   "description": "Middleware to help tunnel CCTV Streams and ONVIF APIs for TeleICU",
