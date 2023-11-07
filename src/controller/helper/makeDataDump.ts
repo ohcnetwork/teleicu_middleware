@@ -18,7 +18,7 @@ export const makeDataDumpToJson = async (
   assetExternalId: string,
   patient_id: string,
   consultation_id: string,
-  image: string
+  image: string | null
 ) => {
   try {
     const s3 = new AWS.S3({

@@ -100,7 +100,7 @@ const fileToBase64 = (filePath: string) => {
 const extractData = async (
   camParams: CameraParams,
   monitorPreset = { x: 0, y: 0, zoom: 0 }
-) => {
+): Promise<[OCRObservationV1Sanitized, string | null]> => {
   try {
     console.log("Moving to coordinates: ", monitorPreset);
     await CameraUtils.absoluteMove({ camParams, ...monitorPreset });
@@ -189,7 +189,7 @@ const _getCamParams = (params: {
 export const updateObservationAuto = async (
   cameraParams: CameraAsset,
   monitorPreset: CameraPreset
-) => {
+): Promise<[OCRObservationV1Sanitized, string | null]> => {
   try {
     const cameraParamsSanitized = _getCamParams(cameraParams);
 
