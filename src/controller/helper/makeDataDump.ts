@@ -17,7 +17,8 @@ export const makeDataDumpToJson = async (
   v2Payload: OCRObservationV1Sanitized,
   assetExternalId: string,
   patient_id: string,
-  consultation_id: string
+  consultation_id: string,
+  image: string
 ) => {
   try {
     const s3 = new AWS.S3({
@@ -28,11 +29,12 @@ export const makeDataDumpToJson = async (
     });
 
     const dataDump = {
-      assetExternalId: assetExternalId,
-      patient_id: patient_id,
-      consultation_id: consultation_id,
-      v1Payload: v1Payload,
-      v2Payload: v2Payload,
+      assetExternalId,
+      patient_id,
+      consultation_id,
+      v1Payload,
+      v2Payload,
+      image,
     };
 
     if (!s3BucketName) {
@@ -43,7 +45,7 @@ export const makeDataDumpToJson = async (
       Bucket: s3BucketName,
       Key: `${assetExternalId}--${new Date().getTime()}.json`,
       Body: JSON.stringify(dataDump),
-      "Content-Type": "application/json",
+      ContentType: "application/json",
     };
 
     await new Promise((resolve, reject) => {
