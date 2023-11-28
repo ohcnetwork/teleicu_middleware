@@ -37,6 +37,7 @@ var logData: {
 }[] = [];
 var statusData: ObservationStatus[] = [];
 var lastObservationData: LastObservationData = {};
+let observationData: { time: Date; data: Observation[][] }[] = [];
 
 // start updating after 1 minutes of starting the middleware
 let lastUpdatedToCare = new Date().getTime() - 59 * 60 * 1000;
@@ -45,9 +46,29 @@ let lastUpdatedToCare = new Date().getTime() - 59 * 60 * 1000;
 
 // Update Interval is set to 1 hour
 const UPDATE_INTERVAL = 60 * 60 * 1000;
+const S3_DATA_DUMP_INTERVAL = 1000 * 60 * 60;
 // For testing purposes, set update interval to 5 minutes
 // const UPDATE_INTERVAL = 5 * 60 * 1000;
 const DEFAULT_LISTING_LIMIT = 10;
+
+setInterval(() => {
+  makeDataDumpToJson(
+    observationData,
+    `observations/${new Date().getTime()}.json`,
+    {
+      slug: "s3_observations_dump",
+      options: {
+        schedule: {
+          type: "interval",
+          unit: "minutes",
+          value: S3_DATA_DUMP_INTERVAL / (1000 * 60),
+        },
+      },
+    }
+  );
+
+  observationData = [];
+}, S3_DATA_DUMP_INTERVAL);
 
 const getTime = (date: string) =>
   new Date(date.replace(" ", "T").concat("+0530"));
@@ -350,12 +371,15 @@ const updateObservationsToCare = async () => {
           monitorPreset
         );
         await makeDataDumpToJson(
-          payload,
-          v2Payload,
-          asset.externalId,
-          patient_id,
-          consultation_id,
-          b64Image
+          {
+            payload,
+            v2Payload,
+            assetExternalId: asset.externalId,
+            patient_id,
+            consultation_id,
+            b64Image,
+          },
+          `${asset.externalId}--${new Date().getTime()}.json`
         );
       } catch (err) {
         console.log("updateObservationsToCare:Data dump failed", err);
@@ -504,6 +528,7 @@ export class ObservationController {
     addLogData(req.body);
     addStatusData(req.body);
     const observations = req.body;
+    observationData.push({ time: new Date(), data: observations });
     // If req.body.observations is an array, then we need to loop through it and create a new observation for each one
     // If req.body.observations is a single object, then we need to create a new observation for it
     // If req.body.observations is undefined, then we need to return an error

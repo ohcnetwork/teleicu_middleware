@@ -7,19 +7,30 @@ import {
   s3Provider,
   s3SecretAccessKey,
 } from "@/utils/configs";
-import type { DailyRoundObservation } from "@/types/observation";
-import type { OCRObservationV1Sanitized } from "@/types/ocr";
+import { captureCheckIn } from "@sentry/node";
 
 dotenv.config({ path: "./.env" });
 
 export const makeDataDumpToJson = async (
-  v1Payload: DailyRoundObservation,
-  v2Payload: OCRObservationV1Sanitized,
-  assetExternalId: string,
-  patient_id: string,
-  consultation_id: string,
-  image: string | null
+  data: Record<string, any> | any[],
+  key: string,
+  monitorOptions?: {
+    slug: string;
+    options?: any;
+  }
 ) => {
+  let checkInId: string | undefined = undefined;
+
+  if (monitorOptions) {
+    checkInId = captureCheckIn(
+      {
+        monitorSlug: monitorOptions.slug,
+        status: "in_progress",
+      },
+      monitorOptions.options
+    );
+  }
+
   try {
     const s3 = new AWS.S3({
       accessKeyId: s3AccessKeyId,
@@ -28,23 +39,14 @@ export const makeDataDumpToJson = async (
       s3ForcePathStyle: s3Provider !== "AWS",
     });
 
-    const dataDump = {
-      assetExternalId,
-      patient_id,
-      consultation_id,
-      v1Payload,
-      v2Payload,
-      image,
-    };
-
     if (!s3BucketName) {
       throw new Error("S3 Bucket Name not found");
     }
 
     const params = {
       Bucket: s3BucketName,
-      Key: `${assetExternalId}--${new Date().getTime()}.json`,
-      Body: JSON.stringify(dataDump),
+      Key: key,
+      Body: JSON.stringify(data),
       ContentType: "application/json",
     };
 
@@ -53,16 +55,31 @@ export const makeDataDumpToJson = async (
         params,
         function (err: Error, data: AWS.S3.ManagedUpload.SendData) {
           if (err) {
-            console.log("Auto OCR Upload error");
+            console.log("Failed to upload data to S3");
             reject(err);
           } else {
-            console.log("Auto OCR Upload Success");
+            console.log("Successfully uploaded data to S3");
             resolve(data);
           }
         }
       );
     });
+
+    if (monitorOptions && checkInId) {
+      captureCheckIn({
+        checkInId,
+        monitorSlug: monitorOptions.slug,
+        status: "ok",
+      });
+    }
   } catch (err) {
+    if (monitorOptions && checkInId) {
+      captureCheckIn({
+        checkInId,
+        monitorSlug: monitorOptions.slug,
+        status: "error",
+      });
+    }
     console.log(err);
   }
 };
