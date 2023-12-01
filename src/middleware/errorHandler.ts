@@ -18,7 +18,7 @@ const sendProdError = (err: any, res: Response) => {
   });
 };
 
-export const errorHandler: ErrorRequestHandler = (err, req, res) => {
+export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "error";
 
