@@ -3,7 +3,6 @@ import FormData from "form-data";
 import fs from "fs";
 import path from "path";
 
-import { downloadImage } from "@/utils/downloadImageWithDigestRouter";
 import type { CameraAsset, CameraParams, CameraPreset } from "@/types/camera";
 import type {
   OCRObservationV1Raw,
@@ -11,6 +10,7 @@ import type {
 } from "@/types/ocr";
 import { CameraUtils } from "@/utils/CameraUtils";
 import { ocrApi, saveOCRImages, waitBeforeOCRCapture } from "@/utils/configs";
+import { downloadImage } from "@/utils/downloadImageWithDigestRouter";
 
 const celsiusToFahrenheit = (celsius: string) => {
   const celsiusNumber = parseFloat(celsius);

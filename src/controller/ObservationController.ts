@@ -4,7 +4,6 @@ import type { Request, Response } from "express";
 
 import { BadRequestException } from "@/Exception/BadRequestException";
 import { NotFoundException } from "@/Exception/NotFoundException";
-import { updateObservationAuto } from "@/utils/autoDataExtractor";
 import prisma from "@/lib/prisma";
 import type {
   DailyRoundObservation,
@@ -19,6 +18,7 @@ import { WebSocket } from "@/types/ws";
 import { isValid } from "@/utils/ObservationUtils";
 import { ObservationsMap } from "@/utils/ObservationsMap";
 import { generateHeaders } from "@/utils/assetUtils";
+import { updateObservationAuto } from "@/utils/autoDataExtractor";
 import { catchAsync } from "@/utils/catchAsync";
 import { careApi, saveDailyRound } from "@/utils/configs";
 import { getAsset, getBedById, getPatientId } from "@/utils/dailyRoundUtils";
