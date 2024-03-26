@@ -3,6 +3,8 @@ import FormData from "form-data";
 import fs from "fs";
 import path from "path";
 
+
+
 import { staticObservations } from "@/controller/ObservationController";
 import prisma from "@/lib/prisma";
 import {
@@ -16,6 +18,7 @@ import { generateHeaders } from "@/utils/assetUtils";
 import { careApi, ocrApi, saveDailyRound } from "@/utils/configs";
 import { getPatientId } from "@/utils/dailyRoundUtils";
 import { downloadImage } from "@/utils/downloadImageWithDigestRouter";
+
 
 const UPDATE_INTERVAL = 60 * 60 * 1000;
 
@@ -322,6 +325,7 @@ export function payloadHasData(payload: Record<string, any>): boolean {
 }
 
 export async function automatedDailyRounds() {
+  console.log("Automated daily rounds");
   const monitors = await prisma.asset.findMany({
     where: {
       type: "HL7MONITOR",
@@ -329,10 +333,15 @@ export async function automatedDailyRounds() {
     },
   });
 
+  console.log(`Found ${monitors.length} monitors`);
   monitors.forEach(async (monitor) => {
     const { consultation_id, patient_id, bed_id, asset_beds } =
       await getPatientId(monitor.externalId);
 
+    console.log(`Processing monitor ${monitor.externalId}`);
+    console.log(
+      `Consultation ID: ${consultation_id}, Patient ID: ${patient_id}, Bed ID: ${bed_id}`,
+    );
     if (!consultation_id || !patient_id || !bed_id) {
       throw new Error(`Patient not found for the asset ${monitor.externalId}`);
     }
@@ -341,12 +350,16 @@ export async function automatedDailyRounds() {
       monitor.externalId,
     );
 
+    console.log(`Vitals from observations: ${JSON.stringify(vitals)}`);
+
     if (!vitals) {
       if (!asset_beds || asset_beds.length === 0) {
         throw new Error(
           `No asset beds found for the asset ${monitor.externalId}`,
         );
       }
+
+      console.log(`Asset beds: ${JSON.stringify(asset_beds)}`);
 
       const [username, password, streamId] =
         asset_beds[0].asset_object.meta.camera_access_key.split(":");
@@ -358,11 +371,16 @@ export async function automatedDailyRounds() {
         port: 80,
       };
 
+      console.log(`Camera: ${JSON.stringify(camera)}`);
+
+      console.log(`Moving camera to position: ${JSON.stringify(position)}`);
+
       await CameraUtils.absoluteMove({
         camParams: camera,
         ...position,
       });
 
+      console.log(`Camera moved to position: ${JSON.stringify(position)}`);
       CameraUtils.lockCamera(camera.hostname, 1000 * 60 * 2);
 
       const snapshotUrl = await CameraUtils.getSnapshotUri({
@@ -373,12 +391,15 @@ export async function automatedDailyRounds() {
       CameraUtils.unlockCamera(camera.hostname);
 
       vitals = await getVitalsFromImage(imageUrl);
+      console.log(`Vitals from image: ${JSON.stringify(vitals)}`);
     }
 
     if (!vitals || !payloadHasData(vitals)) {
       throw new Error(`No vitals found for the patient ${patient_id}`);
     }
 
+    console.log(`Filing daily round for the patient ${patient_id}`);
     await fileAutomatedDailyRound(consultation_id, monitor.externalId, vitals);
+    console.log(`Daily round filed for the patient ${patient_id}`);
   });
 }

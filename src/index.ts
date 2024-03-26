@@ -1,5 +1,7 @@
 import * as cron from "node-cron";
 
+
+
 import { automatedDailyRounds } from "@/cron/automatedDailyRounds";
 import { initServer } from "@/server";
 import { port } from "@/utils/configs";
@@ -16,7 +18,8 @@ process.env.CHECKPOINT_DISABLE = "1";
   setTimeout(() => {
     retrieveAssetConfig();
 
-    cron.schedule("0 */1 * * *", automatedDailyRounds);
+    // cron.schedule("0 */1 * * *", automatedDailyRounds);
+    setTimeout(automatedDailyRounds, 5000);
   }, 100);
 
   server.listen(port, () =>
