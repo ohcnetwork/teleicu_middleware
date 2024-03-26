@@ -20,7 +20,7 @@ export const getAsset = async (assetIp: string) => {
 
 export const getPatientId = async (assetExternalId: string) => {
   return await axios
-    .get(`${careApi}/api/v1/consultation/patient_from_asset/`, {
+    .get(`${careApi}/api/v1/consultation/patient_from_asset/?preset_name=monitor`, {
       headers: (await generateHeaders(assetExternalId)) as AxiosRequestHeaders,
     })
     .then((res) => res.data)

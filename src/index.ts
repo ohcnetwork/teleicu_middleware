@@ -1,3 +1,6 @@
+import * as cron from "node-cron";
+
+import { automatedDailyRounds } from "@/cron/automatedDailyRounds";
 import { initServer } from "@/server";
 import { port } from "@/utils/configs";
 import { retrieveAssetConfig } from "@/utils/retrieveAssetConfig";
@@ -10,7 +13,11 @@ process.env.CHECKPOINT_DISABLE = "1";
   const server = initServer();
 
   // need the server to be up for open-id auth to work
-  setTimeout(retrieveAssetConfig, 100);
+  setTimeout(() => {
+    retrieveAssetConfig();
+
+    cron.schedule("0 */1 * * *", automatedDailyRounds);
+  }, 100);
 
   server.listen(port, () =>
     console.log(

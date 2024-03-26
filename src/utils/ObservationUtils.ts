@@ -196,7 +196,7 @@ export const messages = [
 ];
 
 export const isValid = (observation: Observation) => {
-  if (!observation || !observation.status || isNaN(observation.value ?? NaN)) {
+  if (!observation || !observation.status || (!["blood-pressure"].includes(observation.observation_id) && isNaN(observation.value ?? NaN))) {
     return false;
   }
 
