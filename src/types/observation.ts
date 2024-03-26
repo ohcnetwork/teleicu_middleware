@@ -120,7 +120,7 @@ export interface DailyRoundObservation {
   } | null;
   taken_at?: string | Date | null;
   rounds_type?: "AUTOMATED";
-  automated_ocr?: boolean;
+  is_parsed_by_ocr?: boolean;
 }
 
 export interface ObservationStatus {

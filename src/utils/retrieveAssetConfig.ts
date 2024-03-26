@@ -54,7 +54,8 @@ export async function retrieveAssetConfig() {
   );
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch asset config: ${response.statusText}`);
+    console.error(`Failed to fetch asset config: ${response.statusText}`);
+    return null;
   }
 
   const data = (await response.json()) as AssetConfig[];

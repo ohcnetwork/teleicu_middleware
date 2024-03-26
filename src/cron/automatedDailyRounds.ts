@@ -7,11 +7,7 @@ import path from "path";
 
 import { staticObservations } from "@/controller/ObservationController";
 import prisma from "@/lib/prisma";
-import {
-  DailyRoundObservation,
-  Observation,
-  ObservationType,
-} from "@/types/observation";
+import { DailyRoundObservation, Observation, ObservationType } from "@/types/observation";
 import { CameraUtils } from "@/utils/CameraUtils";
 import { isValid } from "@/utils/ObservationUtils";
 import { generateHeaders } from "@/utils/assetUtils";
@@ -119,16 +115,18 @@ export async function getMonitorPreset(bedId: string, assetId: string) {
   });
 
   if (response.status !== 200) {
-    throw new Error(
+    console.error(
       `Failed to get assetbed from care for the bed ${bedId} and asset ${assetId}`,
     );
+    return null;
   }
 
   const assetBed = response.data?.results?.[0];
   if (!assetBed) {
-    throw new Error(
+    console.error(
       `No assetbed found for the bed ${bedId} and asset ${assetId}`,
     );
+    return null;
   }
 
   const [username, password, streamId] =
@@ -168,39 +166,79 @@ export async function saveImageLocally(
   return imagePath;
 }
 
-export async function getVitalsFromImage(imageUrl: string) {
-  // TODO: wire it and test it
+type OCRV2Response = {
+  status: number;
+  message: "success" | "error";
+  data: {
+    time_stamp: string | null;
+    ecg: {
+      Heart_Rate_bpm: number | null;
+    };
+    nibp: {
+      systolic_mmhg: number | null;
+      diastolic_mmhg: number | null;
+      mean_arterial_pressure_mmhg: number | null;
+    };
+    spO2: {
+      oxygen_saturation_percentage: number | null;
+    };
+    respiration_rate: {
+      breaths_per_minute: number | null;
+    };
+    temperature: {
+      fahrenheit: number | null;
+    };
+  };
+};
 
+export async function getVitalsFromImage(imageUrl: string) {
   const bodyFormData = new FormData();
   bodyFormData.append("image", fs.createReadStream(imageUrl));
 
   if (!ocrApi) {
-    throw new Error("OCR_URL is not defined");
+    console.error("OCR_URL is not defined");
+    return null;
   }
 
-  const response = await axios.post(ocrApi, bodyFormData, {
-    headers: {
-      ...bodyFormData.getHeaders(),
+  const response = await axios.post<FormData, AxiosResponse<OCRV2Response>>(
+    ocrApi,
+    bodyFormData,
+    {
+      headers: {
+        ...bodyFormData.getHeaders(),
+      },
     },
-  });
-
-  console.log(`OCR response: ${JSON.stringify(response.data)}`);
+  );
 
   if (response.status !== 200) {
-    throw new Error("OCR analysis failed");
+    console.error(
+      `OCR analysis failed for the image ${imageUrl}`,
+      response.statusText,
+      JSON.stringify(response.data),
+    );
+    return null;
   }
 
+  const data = response.data.data;
+  const date = data.time_stamp ? new Date(data.time_stamp) : new Date();
+  const isoDate =
+    date.toString() !== "Invalid Date"
+      ? date.toISOString()
+      : new Date().toISOString();
   return {
-    taken_at: new Date().toISOString(),
-    spo2: 95,
-    ventilator_spo2: 95,
-    resp: 20,
-    pulse: 80,
-    temperature: 98.6,
-    temperature_measured_at: new Date().toISOString(),
-    bp: { systolic: 120, diastolic: 80 },
+    taken_at: isoDate,
+    spo2: data.spO2?.oxygen_saturation_percentage ?? null,
+    ventilator_spo2: data.spO2?.oxygen_saturation_percentage ?? null,
+    resp: data.respiration_rate?.breaths_per_minute ?? null,
+    pulse: data.ecg?.Heart_Rate_bpm ?? null,
+    temperature: data.temperature?.fahrenheit ?? null,
+    temperature_measured_at: isoDate,
+    bp: {
+      systolic: data.nibp?.systolic_mmhg ?? null,
+      diastolic: data.nibp?.diastolic_mmhg ?? null,
+    },
     rounds_type: "AUTOMATED",
-    automated_ocr: true,
+    is_parsed_by_ocr: true,
   } as DailyRoundObservation;
 }
 
@@ -227,11 +265,16 @@ export async function fileAutomatedDailyRound(
   }
 
   if (response.status !== 201) {
-    throw new Error("Failed to file the daily round");
+    console.error(
+      `Failed to file the daily round for the consultation ${consultationId} and asset ${assetId}`,
+      response.statusText,
+      JSON.stringify(response.data),
+    );
+    return;
   }
 }
 
-export async function getVitalsFromObservations(assetId: string) {
+export async function getVitalsFromObservations(assetHostname: string) {
   const getValueFromData = (
     type: ObservationType,
     data: Record<ObservationType, Observation | Observation[]>,
@@ -281,8 +324,12 @@ export async function getVitalsFromObservations(assetId: string) {
     }
   };
 
+  console.log(
+    `Getting vitals from observations for the asset ${assetHostname}`,
+  );
+
   const observation = staticObservations.find(
-    (observation) => observation.device_id === assetId,
+    (observation) => observation.device_id === assetHostname,
   );
 
   if (
@@ -302,13 +349,14 @@ export async function getVitalsFromObservations(assetId: string) {
     pulse:
       getValueFromData("heart-rate", data) ??
       getValueFromData("pulse-rate", data),
-    ...((getValueFromData("body-temperature1", data) as {
+    ...(((getValueFromData("body-temperature1", data) ??
+      getValueFromData("body-temperature2", data)) as {
       temperature: number;
       temperature_mesured_at: string;
-    } | null) ?? {}),
+    } | null) ?? { temperature: null, temperature_measured_at: null }),
     bp: getValueFromData("blood-pressure", data),
     rounds_type: "AUTOMATED",
-    automated_ocr: false,
+    is_parsed_by_ocr: false,
   } as DailyRoundObservation;
 }
 
@@ -345,20 +393,22 @@ export async function automatedDailyRounds() {
       `Consultation ID: ${consultation_id}, Patient ID: ${patient_id}, Bed ID: ${bed_id}`,
     );
     if (!consultation_id || !patient_id || !bed_id) {
-      throw new Error(`Patient not found for the asset ${monitor.externalId}`);
+      console.error(`Patient not found for the asset ${monitor.externalId}`);
+      return;
     }
 
     let vitals: DailyRoundObservation | null = await getVitalsFromObservations(
-      monitor.externalId,
+      monitor.ipAddress,
     );
 
     console.log(`Vitals from observations: ${JSON.stringify(vitals)}`);
 
     if (!vitals) {
       if (!asset_beds || asset_beds.length === 0) {
-        throw new Error(
+        console.error(
           `No asset beds found for the asset ${monitor.externalId}`,
         );
+        return;
       }
 
       console.log(`Asset beds: ${JSON.stringify(asset_beds)}`);
@@ -385,6 +435,8 @@ export async function automatedDailyRounds() {
       console.log(`Camera moved to position: ${JSON.stringify(position)}`);
       CameraUtils.lockCamera(camera.hostname, 1000 * 60 * 2);
 
+      await new Promise((resolve) => setTimeout(resolve, 60 * 1000));
+
       const snapshotUrl = await CameraUtils.getSnapshotUri({
         camParams: camera,
       });
@@ -397,7 +449,8 @@ export async function automatedDailyRounds() {
     }
 
     if (!vitals || !payloadHasData(vitals)) {
-      throw new Error(`No vitals found for the patient ${patient_id}`);
+      console.error(`No vitals found for the patient ${patient_id}`);
+      return;
     }
 
     console.log(`Filing daily round for the patient ${patient_id}`);

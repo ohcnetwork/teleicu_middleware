@@ -7,6 +7,7 @@ import { initServer } from "@/server";
 import { port } from "@/utils/configs";
 import { retrieveAssetConfig } from "@/utils/retrieveAssetConfig";
 
+
 process.env.AWS_SDK_JS_SUPPRESS_MAINTENANCE_MODE_MESSAGE = "1";
 process.env.CHECKPOINT_DISABLE = "1";
 
@@ -19,7 +20,8 @@ process.env.CHECKPOINT_DISABLE = "1";
     retrieveAssetConfig();
 
     // cron.schedule("0 */1 * * *", automatedDailyRounds);
-    setTimeout(automatedDailyRounds, 5000);
+    // cron.schedule("30 * * * * *", automatedDailyRounds);
+    automatedDailyRounds();
   }, 100);
 
   server.listen(port, () =>
