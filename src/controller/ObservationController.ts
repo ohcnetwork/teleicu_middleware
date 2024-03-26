@@ -1,10 +1,7 @@
-import axios from "axios";
-import dayjs from "dayjs";
 import type { Request, Response } from "express";
 
 import { BadRequestException } from "@/Exception/BadRequestException";
 import { NotFoundException } from "@/Exception/NotFoundException";
-import prisma from "@/lib/prisma";
 import type {
   DailyRoundObservation,
   LastObservationData,
@@ -15,19 +12,14 @@ import type {
   StaticObservation,
 } from "@/types/observation";
 import { WebSocket } from "@/types/ws";
-import { isValid } from "@/utils/ObservationUtils";
 import { ObservationsMap } from "@/utils/ObservationsMap";
-import { generateHeaders } from "@/utils/assetUtils";
-import { updateObservationAuto } from "@/utils/autoDataExtractor";
 import { catchAsync } from "@/utils/catchAsync";
-import { careApi, saveDailyRound } from "@/utils/configs";
-import { getAsset, getBedById, getPatientId } from "@/utils/dailyRoundUtils";
 import { makeDataDumpToJson } from "@/utils/makeDataDump";
 import { filterClients } from "@/utils/wsUtils";
 
 const dailyRoundTag = () => new Date().toISOString() + " [Daily Round] ";
 
-var staticObservations: StaticObservation[] = [];
+export var staticObservations: StaticObservation[] = [];
 var activeDevices: string[] = [];
 var lastRequestData = {};
 var logData: {
@@ -37,11 +29,6 @@ var logData: {
 var statusData: ObservationStatus[] = [];
 var lastObservationData: LastObservationData = {};
 let observationData: { time: Date; data: Observation[][] }[] = [];
-
-// start updating after 1 minutes of starting the middleware
-let lastUpdatedToCare = new Date().getTime() - 59 * 60 * 1000;
-// For testing purposes, setting
-// let lastUpdatedToCare = new Date() - (4 * 60 * 1000 + 50 * 1000);
 
 // Update Interval is set to 1 hour
 const UPDATE_INTERVAL = 60 * 60 * 1000;
@@ -159,284 +146,6 @@ const updateLastObservationData = (
     lastObservationData[observationId] ??= {};
     lastObservationData[observationId]![observation.device_id] = observation;
   });
-};
-
-const updateObservationsToCare = async () => {
-  // console.log(dailyRoundTag() + "updateObservationsToCare called")
-  const now = new Date();
-  if (now.getTime() - lastUpdatedToCare < UPDATE_INTERVAL) {
-    // only update once per hour
-    // console.log(dailyRoundTag() + "updateObservationsToCare skipped")
-    return;
-  }
-  lastUpdatedToCare = now.getTime();
-
-  const getValueFromData = (data: Observation) => {
-    const observationDate = getTime(data?.["date-time"]);
-    const stale = now.getTime() - observationDate.getTime() > UPDATE_INTERVAL;
-
-    const validData = isValid(data);
-    console.log(data);
-    if (!validData) {
-      console.log(
-        dailyRoundTag() + "Data Not Valid",
-        data["observation_id"],
-        "|",
-        data.status,
-        "|",
-        data.value,
-      );
-      return null;
-    } else if (stale) {
-      console.log(
-        dailyRoundTag() + "Data Stale",
-        data["observation_id"],
-        "|",
-        observationDate.toISOString(),
-        "|",
-        new Date().toISOString(),
-      );
-      return null;
-    } else {
-      return data?.value ?? null;
-    }
-  };
-
-  console.log(dailyRoundTag() + "Performing daily round");
-  for (const observation of staticObservations) {
-    try {
-      if (
-        now.getTime() - new Date(observation.last_updated).getTime() >
-        UPDATE_INTERVAL
-      ) {
-        console.log(
-          dailyRoundTag() +
-            "Skipping stale observations for device: " +
-            observation.device_id,
-        );
-        continue;
-      }
-
-      console.log(
-        dailyRoundTag() +
-          ">> Updating observation for device:" +
-          observation.device_id,
-      );
-
-      const asset = await getAsset(observation.device_id);
-      if (asset === null) {
-        console.error(
-          dailyRoundTag() +
-            "Asset not found for assetIp: " +
-            observation.device_id,
-        );
-        continue;
-      }
-
-      const { consultation_id, patient_id, bed_id } = await getPatientId(
-        asset.externalId,
-      );
-      if (!patient_id) {
-        console.error(
-          dailyRoundTag() +
-            "Patient not found for assetExternalId: " +
-            asset.externalId,
-        );
-        continue;
-      }
-
-      console.error(
-        dailyRoundTag() + "Compiling data for assetIp: " + asset.ipAddress,
-      );
-
-      const data = observation.observations;
-
-      const rawValues = {
-        taken_at: observation.last_updated,
-        spo2: data["SpO2"]?.[0]?.value,
-        resp: data["respiratory-rate"]?.[0]?.value,
-        pulse: data["heart-rate"]?.[0]?.value ?? data["pulse-rate"]?.[0]?.value,
-        temperature: data["body-temperature1"]?.[0]?.value,
-        temperature_measured_at: dayjs(
-          data["body-temperature1"]?.[0]?.["date-time"],
-          "YYYY-MM-DD HH:mm:ss",
-        ).toISOString(),
-        bp: {
-          systolic: data["blood-pressure"]?.[0]?.systolic?.value,
-          diastolic: data["blood-pressure"]?.[0]?.diastolic?.value,
-        },
-      };
-      console.log("Building Payload");
-
-      // additional check to see if temperature is within range
-      console.log(data);
-      let temperature = getValueFromData(data["body-temperature1"]?.[0]);
-      let temperature_measured_at = null;
-      // const temperature_low_limit = data["body-temperature1"]?.[0]?.["low-limit"];
-      // const temperature_high_limit = data["body-temperature1"]?.[0]?.["high-limit"];
-      if (
-        data["body-temperature1"]?.[0]?.["low-limit"]! < temperature! &&
-        temperature! < data["body-temperature1"]?.[0]?.["high-limit"]!
-      ) {
-        temperature_measured_at = rawValues.temperature_measured_at;
-      } else {
-        temperature = null;
-      }
-
-      // populate blood-pressure object if data is valid
-      const bp: {
-        systolic?: number | null;
-        diastolic?: number | null;
-      } = {};
-      if (
-        data["blood-pressure"]?.[0]?.status === "final" &&
-        now.getTime() -
-          getTime(data?.["blood-pressure"]?.[0]?.["date-time"]).getTime() <
-          UPDATE_INTERVAL // check if data is not stale
-      ) {
-        bp.systolic = data["blood-pressure"]?.[0]?.systolic?.value ?? null;
-        bp.diastolic = data["blood-pressure"]?.[0]?.diastolic?.value ?? null;
-      }
-
-      const spo2 = getValueFromData(data["SpO2"]?.[0]);
-      const payload: DailyRoundObservation = {
-        spo2,
-        ventilator_spo2: spo2,
-        resp: getValueFromData(data["respiratory-rate"]?.[0]),
-        pulse:
-          getValueFromData(data["heart-rate"]?.[0]) ??
-          getValueFromData(data["pulse-rate"]?.[0]),
-        temperature,
-        temperature_measured_at,
-        bp,
-      };
-
-      console.log(dailyRoundTag() + "Data compiled for " + asset.ipAddress);
-      console.table(rawValues);
-      console.table(payload);
-
-      const payloadHasData = (payload: Record<string, any>): boolean =>
-        Object.entries(payload).some(([key, value]) => {
-          if (value === null || value === undefined) {
-            console.log(key, " | Value ", value);
-            return false;
-          } else if (typeof value === "object") {
-            console.log(key, " | Object | ", value);
-            return payloadHasData(value);
-          }
-          console.log(key, " | Value | ", value);
-          return true;
-        });
-
-      //check if there is any data to update
-      console.log(
-        "Attempt to update data for asset: ",
-        asset.ipAddress,
-        "with payload: ",
-        payload,
-      );
-      if (!payloadHasData(payload)) {
-        console.error(
-          dailyRoundTag() + "No data to update for assetIp: " + asset.ipAddress,
-        );
-        continue;
-      }
-
-      payload.taken_at = observation.last_updated;
-      payload.rounds_type = "AUTOMATED";
-
-      try {
-        const { camera, monitorPreset } = (await getBedById(bed_id)) ?? {};
-
-        if (!camera) {
-          throw new Error("Camera not found for bedId: " + bed_id);
-        }
-
-        if (!monitorPreset) {
-          throw new Error("Monitor preset not found for bedId: " + bed_id);
-        }
-
-        const cameraParams = {
-          hostname: camera.ipAddress,
-          username: camera.username!,
-          password: camera.password!,
-          port: camera.port!,
-        };
-
-        console.log("updateObservationsToCare:cameraParams", cameraParams);
-
-        const [v2Payload, b64Image] = await updateObservationAuto(
-          cameraParams,
-          monitorPreset,
-        );
-        await makeDataDumpToJson(
-          {
-            payload,
-            v2Payload,
-            assetExternalId: asset.externalId,
-            patient_id,
-            consultation_id,
-            b64Image,
-          },
-          `${asset.externalId}--${new Date().getTime()}.json`,
-        );
-      } catch (err) {
-        console.log("updateObservationsToCare:Data dump failed", err);
-      }
-      axios
-        .post(
-          `${careApi}/api/v1/consultation/${consultation_id}/daily_rounds/`,
-          payload,
-          { headers: await generateHeaders(asset.externalId) },
-        )
-        .then((res) => {
-          if (saveDailyRound) {
-            prisma.dailyRound.create({
-              data: {
-                assetExternalId: asset.externalId,
-                status: res.statusText,
-                data: JSON.stringify(payload),
-                response: JSON.stringify(res.data),
-              },
-            });
-          }
-          console.log(res.data);
-          console.log(
-            dailyRoundTag() +
-              "Updated observation for device: " +
-              asset.ipAddress,
-          );
-          return res;
-        })
-        .catch((err) => {
-          if (saveDailyRound) {
-            prisma.dailyRound.create({
-              data: {
-                assetExternalId: asset.externalId,
-                status: err.response.statusText,
-                data: JSON.stringify(payload),
-                response: JSON.stringify(err.response?.data),
-              },
-            });
-          }
-          console.log(err.response?.data || err.response?.statusText);
-          console.error(
-            dailyRoundTag() +
-              "Error updating observations to care for assetIp: " +
-              asset.ipAddress,
-          );
-          return err.response;
-        });
-    } catch (error) {
-      console.error(
-        dailyRoundTag() +
-          "Error performing observations for assetIp: " +
-          observation.device_id,
-      );
-      console.error(error);
-    }
-  }
-  console.log(dailyRoundTag() + "Daily round finished");
 };
 
 const filterStatusData = () => {
@@ -568,8 +277,6 @@ export class ObservationController {
     flattenedObservations.forEach((observation: Observation) => {
       addObservation(observation);
     });
-
-    updateObservationsToCare();
 
     return res.send(req.body);
   };
