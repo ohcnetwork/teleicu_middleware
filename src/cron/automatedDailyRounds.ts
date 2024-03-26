@@ -184,6 +184,8 @@ export async function getVitalsFromImage(imageUrl: string) {
     },
   });
 
+  console.log(`OCR response: ${JSON.stringify(response.data)}`);
+
   if (response.status !== 200) {
     throw new Error("OCR analysis failed");
   }
