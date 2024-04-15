@@ -19,6 +19,8 @@ process.env.CHECKPOINT_DISABLE = "1";
   setTimeout(() => {
     retrieveAssetConfig();
 
+    cron.schedule("0 */6 * * *", retrieveAssetConfig);
+
     cron.schedule("0 */1 * * *", automatedDailyRounds);
   }, 100);
 
