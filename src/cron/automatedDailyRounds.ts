@@ -403,7 +403,7 @@ export async function automatedDailyRounds() {
 
     console.log(`Vitals from observations: ${JSON.stringify(vitals)}`);
 
-    if (!vitals) {
+    if (!vitals && ocrApi) {
       if (!asset_beds || asset_beds.length === 0) {
         console.error(
           `No asset beds found for the asset ${monitor.externalId}`,
