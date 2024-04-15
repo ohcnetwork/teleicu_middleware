@@ -1,5 +1,6 @@
 import * as dotenv from "dotenv";
 
+
 dotenv.config();
 
 export const nodeEnv = process.env.NODE_ENV ?? "development";
@@ -32,8 +33,4 @@ export const s3BucketName = process.env.S3_BUCKET_NAME;
 export const s3AccessKeyId = process.env.S3_ACCESS_KEY_ID;
 export const s3SecretAccessKey = process.env.S3_SECRET_ACCESS_KEY;
 
-export const ocrApi = process.env.OCR_URL;
-export const saveOCRImages = process.env.SAVE_OCR_IMAGES === "true";
-export const waitBeforeOCRCapture = parseInt(
-  process.env.WAIT_BEFORE_OCR_CAPTURE ?? "0",
-);
+export const openaiApiKey = process.env.OPENAI_API_KEY ?? "";

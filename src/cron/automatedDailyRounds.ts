@@ -1,111 +1,27 @@
 import axios, { AxiosResponse } from "axios";
-import FormData from "form-data";
 import fs from "fs";
 import path from "path";
 
 import { staticObservations } from "@/controller/ObservationController";
 import prisma from "@/lib/prisma";
+import { AssetBed } from "@/types/asset";
+import { CameraParams } from "@/types/camera";
+import { CarePaginatedResponse } from "@/types/care";
 import {
   DailyRoundObservation,
   Observation,
   ObservationType,
 } from "@/types/observation";
+import { OCRV2Response } from "@/types/ocr";
 import { CameraUtils } from "@/utils/CameraUtils";
 import { isValid } from "@/utils/ObservationUtils";
 import { generateHeaders } from "@/utils/assetUtils";
-import { careApi, ocrApi, saveDailyRound } from "@/utils/configs";
+import { careApi, openaiApiKey, saveDailyRound } from "@/utils/configs";
 import { getPatientId } from "@/utils/dailyRoundUtils";
 import { downloadImage } from "@/utils/downloadImageWithDigestRouter";
+import { parseVitalsFromImage } from "@/utils/ocr";
 
 const UPDATE_INTERVAL = 60 * 60 * 1000;
-
-type CarePaginatedResponse<T> = {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: T[];
-};
-
-type AssetBed = {
-  id: string;
-  bed_object: {
-    id: string;
-    name: string;
-    bed_type: "ICU" | "WARD";
-    location_object: {
-      id: string;
-      facility: {
-        id: string;
-        name: string;
-      };
-      location_type: "OTHER" | "WARD" | "ICU";
-      created_date: string;
-      modified_date: string;
-      name: string;
-      description: string;
-      middleware_address: string | null;
-    };
-    is_occupied: boolean;
-    created_date: string;
-    modified_date: string;
-    description: string;
-    meta: any;
-  };
-  asset_object: {
-    id: string;
-    status: "ACTIVE" | "INACTIVE";
-    asset_type: "INTERNAL" | "EXTERNAL";
-    location_object: {
-      id: string;
-      facility: {
-        id: string;
-        name: string;
-      };
-      location_type: "OTHER" | "WARD" | "ICU";
-      created_date: string;
-      modified_date: string;
-      name: string;
-      description: string;
-      middleware_address: string | null;
-    };
-    last_service: string | null;
-    resolved_middleware: {
-      hostname: string;
-      source: string;
-    };
-    created_date: string;
-    modified_date: string;
-    name: string;
-    description: string;
-    asset_class: "ONVIF" | "HL7MONITOR" | "VENTILATOR";
-    is_working: boolean;
-    not_working_reason: string;
-    serial_number: string;
-    warranty_details: string;
-    meta: {
-      asset_type: "CAMERA" | "MONITOR" | "VENTILATOR";
-      local_ip_address: string;
-      camera_access_key: string;
-    };
-    vendor_name: string;
-    support_name: string;
-    support_phone: string;
-    support_email: string;
-    qr_code_id: string | null;
-    manufacturer: string | null;
-    warranty_amc_end_of_validity: string | null;
-  };
-  created_date: string;
-  modified_date: string;
-  meta: {
-    error: string;
-    bed_id: string;
-    utcTime: string;
-    position: { x: number; y: number; zoom: number };
-    moveStatus: { zoom: "IDLE" | "MOVING"; panTilt: "IDLE" | "MOVING" };
-    preset_name: string;
-  };
-};
 
 export async function getMonitorPreset(bedId: string, assetId: string) {
   const response = await axios.get<
@@ -144,13 +60,6 @@ export async function getMonitorPreset(bedId: string, assetId: string) {
   };
 }
 
-type CameraParams = {
-  hostname: string;
-  username: string;
-  password: string;
-  port: number;
-};
-
 export async function saveImageLocally(
   snapshotUrl: string,
   camParams: CameraParams,
@@ -167,60 +76,15 @@ export async function saveImageLocally(
   return imagePath;
 }
 
-type OCRV2Response = {
-  status: number;
-  message: "success" | "error";
-  data: {
-    time_stamp: string | null;
-    ecg: {
-      Heart_Rate_bpm: number | null;
-    };
-    nibp: {
-      systolic_mmhg: number | null;
-      diastolic_mmhg: number | null;
-      mean_arterial_pressure_mmhg: number | null;
-    };
-    spO2: {
-      oxygen_saturation_percentage: number | null;
-    };
-    respiration_rate: {
-      breaths_per_minute: number | null;
-    };
-    temperature: {
-      fahrenheit: number | null;
-    };
-  };
-};
-
 export async function getVitalsFromImage(imageUrl: string) {
-  const bodyFormData = new FormData();
-  bodyFormData.append("image", fs.createReadStream(imageUrl));
+  const image = fs.readFileSync(imageUrl);
+  const data = (await parseVitalsFromImage(image)) as OCRV2Response | null;
 
-  if (!ocrApi) {
-    console.error("OCR_URL is not defined");
+  if (!data) {
+    console.error("Failed to parse vitals from image");
     return null;
   }
 
-  const response = await axios.post<FormData, AxiosResponse<OCRV2Response>>(
-    ocrApi,
-    bodyFormData,
-    {
-      headers: {
-        ...bodyFormData.getHeaders(),
-      },
-    },
-  );
-
-  if (response.status !== 200) {
-    console.error(
-      `OCR analysis failed for the image ${imageUrl}`,
-      response.statusText,
-      JSON.stringify(response.data),
-    );
-    return null;
-  }
-
-  const data = response.data.data;
   const date = data.time_stamp ? new Date(data.time_stamp) : new Date();
   const isoDate =
     date.toString() !== "Invalid Date"
@@ -404,7 +268,7 @@ export async function automatedDailyRounds() {
 
     console.log(`Vitals from observations: ${JSON.stringify(vitals)}`);
 
-    if (!vitals && ocrApi) {
+    if (!vitals && openaiApiKey) {
       if (!asset_beds || asset_beds.length === 0) {
         console.error(
           `No asset beds found for the asset ${monitor.externalId}`,
@@ -418,6 +282,7 @@ export async function automatedDailyRounds() {
         asset_beds[0].asset_object.meta.camera_access_key.split(":");
       const position = asset_beds[0].meta.position;
       const camera = {
+        useSecure: false,
         hostname: asset_beds[0].asset_object.meta.local_ip_address,
         username,
         password,
