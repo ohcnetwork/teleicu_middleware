@@ -13,6 +13,8 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
+RUN mkdir /app/images
+
 COPY package.*json ./
 RUN npm install --omit=dev
 

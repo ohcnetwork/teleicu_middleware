@@ -14,6 +14,7 @@ async function insertAsset(asset: AssetConfig) {
       description: asset.description,
       ipAddress: asset.ip_address,
       port: asset.port,
+      type: asset.type,
       updatedAt: new Date(),
       username: asset.username,
       password: asset.password,
@@ -24,6 +25,7 @@ async function insertAsset(asset: AssetConfig) {
       description: asset.description ?? "",
       ipAddress: asset.ip_address,
       port: asset.port,
+      type: asset.type,
       updatedAt: new Date(),
       username: asset.username,
       password: asset.password,
@@ -46,25 +48,18 @@ async function deleteAsset(asset: Asset) {
 export async function retrieveAssetConfig() {
   console.log("Retrieving asset config");
 
-  const data = await fetch(
+  const response = await fetch(
     `${careApi}/api/v1/asset_config/?middleware_hostname=${hostname}`,
     { headers: await generateHeaders() },
-  )
-    .then((res) => {
-      if (!res.ok) {
-        throw new Error(`Failed to fetch asset config: ${res.statusText}`);
-      }
-      return res.json();
-    })
-    .then((data) => {
-      const assets = data as AssetConfig[];
-      console.log(`Found ${assets?.length ?? 0} assets`);
-      return assets;
-    })
-    .catch((error) => {
-      console.error("Failed to fetch asset config", error);
-      return null;
-    });
+  );
+
+  if (!response.ok) {
+    console.error(`Failed to fetch asset config: ${response.statusText}`);
+    return null;
+  }
+
+  const data = (await response.json()) as AssetConfig[];
+  console.log(`Found ${data?.length ?? 0} assets`);
 
   if (!data || data.length === 0) {
     return null;

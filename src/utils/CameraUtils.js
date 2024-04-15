@@ -7,8 +7,14 @@ const cameraLock = {};
 export class CameraUtils {
   constructor() {}
 
-  static lockCamera = (hostname) => {
+  static lockCamera = (hostname, timeInMs) => {
     cameraLock[hostname] = true;
+
+    if (timeInMs) {
+      setTimeout(() => {
+        cameraLock[hostname] = false;
+      }, timeInMs);
+    }
   };
 
   static unlockCamera = (hostname) => {
