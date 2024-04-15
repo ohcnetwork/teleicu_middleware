@@ -2,6 +2,7 @@ import { openaiApiKey } from "./configs";
 import OpenAI from "openai";
 import sharp from "sharp";
 
+
 const openai = new OpenAI({
   apiKey: openaiApiKey,
 });
@@ -49,7 +50,6 @@ export async function parseVitalsFromImage(image: Buffer) {
       },
       {
         role: "user",
-
         content: [
           {
             type: "image_url",
