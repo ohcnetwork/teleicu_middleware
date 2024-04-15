@@ -19,9 +19,7 @@ process.env.CHECKPOINT_DISABLE = "1";
   setTimeout(() => {
     retrieveAssetConfig();
 
-    // cron.schedule("0 */1 * * *", automatedDailyRounds);
-    // cron.schedule("30 * * * * *", automatedDailyRounds);
-    automatedDailyRounds();
+    cron.schedule("0 */1 * * *", automatedDailyRounds);
   }, 100);
 
   server.listen(port, () =>
