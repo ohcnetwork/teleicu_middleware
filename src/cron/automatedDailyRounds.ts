@@ -3,18 +3,19 @@ import FormData from "form-data";
 import fs from "fs";
 import path from "path";
 
-
-
 import { staticObservations } from "@/controller/ObservationController";
 import prisma from "@/lib/prisma";
-import { DailyRoundObservation, Observation, ObservationType } from "@/types/observation";
+import {
+  DailyRoundObservation,
+  Observation,
+  ObservationType,
+} from "@/types/observation";
 import { CameraUtils } from "@/utils/CameraUtils";
 import { isValid } from "@/utils/ObservationUtils";
 import { generateHeaders } from "@/utils/assetUtils";
 import { careApi, ocrApi, saveDailyRound } from "@/utils/configs";
 import { getPatientId } from "@/utils/dailyRoundUtils";
 import { downloadImage } from "@/utils/downloadImageWithDigestRouter";
-
 
 const UPDATE_INTERVAL = 60 * 60 * 1000;
 

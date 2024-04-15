@@ -1,6 +1,5 @@
 import * as onvif from "onvif";
 
-
 const Cam = onvif.Cam;
 
 const cameraLock = {};
