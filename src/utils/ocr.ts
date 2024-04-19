@@ -60,6 +60,6 @@ export async function parseVitalsFromImage(image: Buffer) {
     return null;
   }
 
-  console.log(`[OCR] : ${JSON.stringify(response)}`);
-  return response;
+  console.log(`[OCR] : ${response}`);
+  return JSON.parse(response);
 }
