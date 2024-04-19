@@ -86,12 +86,13 @@ export async function getVitalsFromImage(imageUrl: string) {
     return null;
   }
 
-  const date = data.time_stamp ? new Date(data.time_stamp) : new Date();
-  const isoDate =
-    date.toString() !== "Invalid Date"
-      ? date.toISOString()
-      : new Date().toISOString();
-
+  // const date = data.time_stamp ? new Date(data.time_stamp) : new Date();
+  // const isoDate =
+  //   date.toString() !== "Invalid Date"
+  //     ? date.toISOString()
+  //     : new Date().toISOString();
+  const isoDate = new Date().toISOString();
+  
   const payload = {
     taken_at: isoDate,
     spo2: data.spO2?.oxygen_saturation_percentage ?? null,
