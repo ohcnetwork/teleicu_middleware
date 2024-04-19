@@ -11,6 +11,7 @@ async function insertAsset(asset: AssetConfig) {
       externalId: asset.id,
     },
     update: {
+      name: asset.name,
       description: asset.description,
       ipAddress: asset.ip_address,
       port: asset.port,

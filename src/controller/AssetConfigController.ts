@@ -2,14 +2,12 @@ import dayjs from "dayjs";
 import { Request, Response } from "express";
 
 import prisma from "@/lib/prisma";
+import { retrieveAssetConfig } from "@/cron/retrieveAssetConfig";
 
 export class AssetConfigController {
   static listAssets = async (req: Request, res: Response) => {
     try {
       const assets = await prisma.asset.findMany({
-        where: {
-          deleted: false,
-        },
         orderBy: [{ updatedAt: "desc" }],
       });
 
@@ -31,12 +29,18 @@ export class AssetConfigController {
       res.render("pages/assets/list", {
         req,
         dayjs,
+        csrfToken: res.locals.csrfToken,
         assets: [],
         beds: [],
         errors: [err.message],
       });
     }
   };
+
+  static refreshAssets = async (req: Request, res: Response) => {
+    await retrieveAssetConfig();
+    res.redirect("/assets");
+  }
 
   static createAssetForm = async (req: Request, res: Response) => {
     res.render("pages/assets/form", {
@@ -143,6 +147,7 @@ export class AssetConfigController {
         username,
         password,
         port,
+        deleted,
       } = req.body;
 
       const asset = await prisma.asset.findFirst({
@@ -175,6 +180,7 @@ export class AssetConfigController {
           updatedAt: new Date(),
           username,
           password,
+          deleted: deleted === "true",
           port: Number(port),
         },
       });

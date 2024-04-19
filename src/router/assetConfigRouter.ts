@@ -12,6 +12,7 @@ router.use(csrfProtection());
 router.get("/", AssetConfigController.listAssets);
 router.get("/new", AssetConfigController.createAssetForm);
 router.post("/", AssetConfigController.createAsset);
+router.post("/refresh", AssetConfigController.refreshAssets);
 router.get("/:externalId", AssetConfigController.updateAssetForm);
 router.post("/:externalId", AssetConfigController.updateAsset);
 router.get("/:externalId/delete", AssetConfigController.confirmDeleteAsset);

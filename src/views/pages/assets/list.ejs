@@ -3,7 +3,7 @@
   <head>
     <%- include('../../partials/head.ejs', { title: 'Teleicu Middleware | Asset Config'}) %>
   </head>
-  <body class="max-w-screen-lg mx-auto">
+  <body class="max-w-screen-xl mx-auto">
     <%- include("../../partials/header") %>
     <main class="py-8 w-full">
       <%- include("../../partials/pageTitle",{title:"Asset Config"}) %>
@@ -15,7 +15,11 @@
             <% }) %>
           </div>
       <% } %>
-      <div class="float-right">
+      <div class="float-right flex gap-2">
+        <form action="/assets/refresh" method="post">
+          <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+          <button class="px-4 py-2 hover:bg-blue-700 bg-blue-500" type="submit">Refresh</button>
+        </form>
         <a class="px-4 py-2 ml-auto hover:bg-green-700 bg-green-500" href="/assets/new">Add New Asset</a>
       </div>
 
@@ -27,6 +31,7 @@
             <!-- <th>Description</th> -->
             <th>IP address</th>
             <th>Updated At</th>
+            <th>Deleted</th>
             <th>Actions</th>
         </tr>
         <% for (var i = 0; i < assets.length; i++) { %>
@@ -38,6 +43,7 @@
             <!-- <td ><%= assets[i].description %></td> -->
             <td class="w-fit"><%= assets[i].ipAddress %></td>
             <td class="w-fit"><%= dayjs(assets[i].updatedAt).format('DD/MM/YYYY hh:mm:ss a') %></td>
+            <td class="w-fit"><%= assets[i].deleted ? 'Yes' : 'No' %></td>
             <td class="w-fit text-right">
                 <a class="px-4 py-2 my-2 hover:bg-yellow-700 bg-yellow-500" href="/assets/<%= assets[i].externalId %>">Edit</a>
                 <a class="px-4 py-2 my-2 hover:bg-red-700 bg-red-500" href="/assets/<%= assets[i].externalId %>/delete">Delete</a>
