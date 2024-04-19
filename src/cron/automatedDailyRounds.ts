@@ -2,16 +2,14 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 import fs from "fs";
 import path from "path";
 
+
+
 import { staticObservations } from "@/controller/ObservationController";
 import prisma from "@/lib/prisma";
 import { AssetBed } from "@/types/asset";
 import { CameraParams } from "@/types/camera";
 import { CarePaginatedResponse } from "@/types/care";
-import {
-  DailyRoundObservation,
-  Observation,
-  ObservationType,
-} from "@/types/observation";
+import { DailyRoundObservation, Observation, ObservationType } from "@/types/observation";
 import { OCRV2Response } from "@/types/ocr";
 import { CameraUtils } from "@/utils/CameraUtils";
 import { isValid } from "@/utils/ObservationUtils";
@@ -20,6 +18,7 @@ import { careApi, openaiApiKey, saveDailyRound } from "@/utils/configs";
 import { getPatientId } from "@/utils/dailyRoundUtils";
 import { downloadImage } from "@/utils/downloadImageWithDigestRouter";
 import { parseVitalsFromImage } from "@/utils/ocr";
+
 
 const UPDATE_INTERVAL = 60 * 60 * 1000;
 
@@ -92,7 +91,8 @@ export async function getVitalsFromImage(imageUrl: string) {
     date.toString() !== "Invalid Date"
       ? date.toISOString()
       : new Date().toISOString();
-  return {
+
+  const payload = {
     taken_at: isoDate,
     spo2: data.spO2?.oxygen_saturation_percentage ?? null,
     ventilator_spo2: data.spO2?.oxygen_saturation_percentage ?? null,
@@ -107,6 +107,20 @@ export async function getVitalsFromImage(imageUrl: string) {
     rounds_type: "AUTOMATED",
     is_parsed_by_ocr: true,
   } as DailyRoundObservation;
+
+  if (
+    payload.temperature &&
+    !(payload.temperature >= 95 && payload.temperature <= 106)
+  ) {
+    payload.temperature = null;
+    payload.temperature_measured_at = null;
+  }
+
+  if (!payload.bp?.systolic || !payload.bp?.diastolic) {
+    payload.bp = {};
+  }
+
+  return payload;
 }
 
 export async function fileAutomatedDailyRound(
@@ -223,7 +237,7 @@ export async function getVitalsFromObservations(assetHostname: string) {
       temperature: number;
       temperature_mesured_at: string;
     } | null) ?? { temperature: null, temperature_measured_at: null }),
-    bp: getValueFromData("blood-pressure", data) ?? { },
+    bp: getValueFromData("blood-pressure", data) ?? {},
     rounds_type: "AUTOMATED",
     is_parsed_by_ocr: false,
   } as DailyRoundObservation;
