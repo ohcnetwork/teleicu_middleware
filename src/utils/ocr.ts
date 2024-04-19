@@ -15,25 +15,16 @@ export function encodeImage(image: Buffer) {
   return Buffer.from(image).toString("base64");
 }
 
-export function parseOpenAiResponse(response: string) {
-  try {
-    const data = JSON.parse(response);
-    return data;
-  } catch (e) {
-    console.error("Failed to parse OpenAI response", e);
-    return null;
-  }
-}
-
 export async function parseVitalsFromImage(image: Buffer) {
   const compressedImage = await compressImage(image);
   const b64Image = encodeImage(compressedImage);
   const imageUrl = `data:image/jpeg;base64,${b64Image}`;
 
   const completions = await openai.chat.completions.create({
-    model: "gpt-4-vision-preview",
+    model: "gpt-4-turbo",
     max_tokens: 4096,
     temperature: 0.4,
+    response_format: { type: "json_object" },
     messages: [
       {
         role: "system",
@@ -69,5 +60,6 @@ export async function parseVitalsFromImage(image: Buffer) {
     return null;
   }
 
-  return parseOpenAiResponse(response);
+  console.log(`[OCR] : ${response}`);
+  return JSON.parse(response);
 }
