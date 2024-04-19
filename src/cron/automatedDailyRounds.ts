@@ -9,11 +9,7 @@ import prisma from "@/lib/prisma";
 import { AssetBed } from "@/types/asset";
 import { CameraParams } from "@/types/camera";
 import { CarePaginatedResponse } from "@/types/care";
-import {
-  DailyRoundObservation,
-  Observation,
-  ObservationType,
-} from "@/types/observation";
+import { DailyRoundObservation, Observation, ObservationType } from "@/types/observation";
 import { OCRV2Response } from "@/types/ocr";
 import { CameraUtils } from "@/utils/CameraUtils";
 import { isValid } from "@/utils/ObservationUtils";
@@ -114,8 +110,7 @@ export async function getVitalsFromImage(imageUrl: string) {
 
   if (
     payload.temperature &&
-    payload.temperature > 95 &&
-    payload.temperature < 105
+    !(payload.temperature >= 95 && payload.temperature <= 106)
   ) {
     payload.temperature = null;
     payload.temperature_measured_at = null;
@@ -123,9 +118,6 @@ export async function getVitalsFromImage(imageUrl: string) {
 
   if (!payload.bp?.systolic || !payload.bp?.diastolic) {
     payload.bp = {};
-  } else {
-    payload.bp.mean =
-      payload.bp.diastolic + (payload.bp.systolic - payload.bp.diastolic) / 3;
   }
 
   return payload;
