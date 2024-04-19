@@ -117,7 +117,7 @@ export interface DailyRoundObservation {
   bp?: {
     systolic?: number | null;
     diastolic?: number | null;
-  } | null;
+  };
   taken_at?: string | Date | null;
   rounds_type?: "AUTOMATED";
   is_parsed_by_ocr?: boolean;

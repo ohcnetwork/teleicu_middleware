@@ -76,8 +76,17 @@
           <label for="port">Port</label>
           <input class="px-2 py-1 border-2 border-black" type="number" placeholder="80" name="port" id="port" value="<%- asset.port %>" />
         </div>
+        <% if(asset?.externalId) {%>
+          <div class="flex flex-col mt-2">
+            <label for="deleted">Deleted</label>
+            <select class="p-2 border-2 border-black" name="deleted" id="deleted">
+              <option value="false" <%= asset.deleted === false ? 'selected' : '' %>>No</option>
+              <option value="true" <%= asset.deleted === true ? 'selected' : '' %>>Yes</option>
+            </select>
+          </div>
+        <% } %>
         <div class="flex flex-col mt-2">
-            <input class="px-4 py-2 hover:bg-green-700 bg-green-500" type="submit" value="Save" />
+          <input class="px-4 py-2 hover:bg-green-700 bg-green-500" type="submit" value="Save" />
         </div>
       </form>
     </main>
