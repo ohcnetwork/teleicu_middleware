@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 import fs from "fs";
 import path from "path";
 
@@ -24,14 +24,16 @@ import { parseVitalsFromImage } from "@/utils/ocr";
 const UPDATE_INTERVAL = 60 * 60 * 1000;
 
 export async function getMonitorPreset(bedId: string, assetId: string) {
-  const response = await axios.get<
-    unknown,
-    AxiosResponse<CarePaginatedResponse<AssetBed>>
-  >(`${careApi}/api/v1/assetbed/?bed=${bedId}&preset_name=monitor`, {
-    headers: await generateHeaders(assetId),
-  });
+  const response = await axios
+    .get<unknown, AxiosResponse<CarePaginatedResponse<AssetBed>>>(
+      `${careApi}/api/v1/assetbed/?bed=${bedId}&preset_name=monitor`,
+      {
+        headers: await generateHeaders(assetId),
+      },
+    )
+    .catch((error: AxiosError) => error.response);
 
-  if (response.status !== 200) {
+  if (response?.status !== 200) {
     console.error(
       `Failed to get assetbed from care for the bed ${bedId} and asset ${assetId}`,
     );
@@ -112,28 +114,30 @@ export async function fileAutomatedDailyRound(
   assetId: string,
   vitals: DailyRoundObservation,
 ) {
-  const response = await axios.post(
-    `${careApi}/api/v1/consultation/${consultationId}/daily_rounds/`,
-    vitals,
-    { headers: await generateHeaders(assetId) },
-  );
+  const response = await axios
+    .post(
+      `${careApi}/api/v1/consultation/${consultationId}/daily_rounds/`,
+      vitals,
+      { headers: await generateHeaders(assetId) },
+    )
+    .catch((error: AxiosError) => error.response);
 
   if (saveDailyRound) {
     prisma.dailyRound.create({
       data: {
         assetExternalId: assetId,
-        status: response.statusText,
+        status: response?.statusText ?? "FAILED",
         data: JSON.stringify(vitals),
-        response: JSON.stringify(response.data),
+        response: JSON.stringify(response?.data),
       },
     });
   }
 
-  if (response.status !== 201) {
+  if (response?.status !== 201) {
     console.error(
       `Failed to file the daily round for the consultation ${consultationId} and asset ${assetId}`,
-      response.statusText,
-      JSON.stringify(response.data),
+      response?.statusText,
+      JSON.stringify(response?.data),
     );
     return;
   }
