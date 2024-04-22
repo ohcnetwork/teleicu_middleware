@@ -1,23 +1,17 @@
 import type { Request, Response } from "express";
 
+
+
 import { BadRequestException } from "@/Exception/BadRequestException";
 import { NotFoundException } from "@/Exception/NotFoundException";
-import type {
-  DailyRoundObservation,
-  LastObservationData,
-  Observation,
-  ObservationStatus,
-  ObservationType,
-  ObservationTypeWithWaveformTypes,
-  StaticObservation,
-} from "@/types/observation";
+import type { DailyRoundObservation, LastObservationData, Observation, ObservationStatus, ObservationType, ObservationTypeWithWaveformTypes, StaticObservation } from "@/types/observation";
 import { WebSocket } from "@/types/ws";
 import { ObservationsMap } from "@/utils/ObservationsMap";
 import { catchAsync } from "@/utils/catchAsync";
+import { hostname } from "@/utils/configs";
 import { makeDataDumpToJson } from "@/utils/makeDataDump";
 import { filterClients } from "@/utils/wsUtils";
 
-const dailyRoundTag = () => new Date().toISOString() + " [Daily Round] ";
 
 export var staticObservations: StaticObservation[] = [];
 var activeDevices: string[] = [];
@@ -30,17 +24,14 @@ var statusData: ObservationStatus[] = [];
 var lastObservationData: LastObservationData = {};
 let observationData: { time: Date; data: Observation[][] }[] = [];
 
-// Update Interval is set to 1 hour
-const UPDATE_INTERVAL = 60 * 60 * 1000;
+
 const S3_DATA_DUMP_INTERVAL = 1000 * 60 * 60;
-// For testing purposes, set update interval to 5 minutes
-// const UPDATE_INTERVAL = 5 * 60 * 1000;
 const DEFAULT_LISTING_LIMIT = 10;
 
 setInterval(() => {
   makeDataDumpToJson(
     observationData,
-    `observations/${new Date().getTime()}.json`,
+    `${hostname}/${new Date().getTime()}.json`,
     {
       slug: "s3_observations_dump",
       options: {
