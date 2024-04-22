@@ -2,13 +2,35 @@ import * as onvif from "onvif";
 
 const Cam = onvif.Cam;
 
+const cameraLock = {};
+
 export class CameraUtils {
   constructor() {}
+
+  static lockCamera = (hostname, timeInMs) => {
+    cameraLock[hostname] = true;
+
+    if (timeInMs) {
+      setTimeout(() => {
+        cameraLock[hostname] = false;
+      }, timeInMs);
+    }
+  };
+
+  static unlockCamera = (hostname) => {
+    cameraLock[hostname] = false;
+  };
 
   static gotoPreset = async ({ camParams, preset }) =>
     new Promise((resolve, reject) => {
       new Cam(camParams, function (err) {
-        if (err) return reject(err);
+        if (err) {
+          return reject(err);
+        }
+
+        if (cameraLock[camParams.hostname]) {
+          return reject({ error: "Camera is locked" });
+        }
 
         this.gotoPreset({ preset }, (data) => resolve(data));
       });
@@ -24,25 +46,32 @@ export class CameraUtils {
             if (error) return reject(error);
             if (presets) return resolve(presets);
           });
-        })
+        }),
     );
 
   static getStatus = async ({ camParams }) =>
     new Promise(
       (resolve, reject) =>
-        new Cam(camParams, function (err) {
+        new Cam({ ...camParams, timeout: 5000 }, function (err) {
           if (err) return reject(err);
           this.getStatus({}, (error, status) => {
             if (error) return reject(error);
             if (status) return resolve(status);
           });
-        })
+        }),
     );
 
   static absoluteMove = async ({ camParams, x, y, zoom }) =>
     new Promise((resolve, reject) => {
       new Cam(camParams, function (err) {
-        if (err) return reject(err);
+        if (err) {
+          return reject(err);
+        }
+
+        if (cameraLock[camParams.hostname]) {
+          return reject({ error: "Camera is locked" });
+        }
+
         try {
           const result = this.absoluteMove({ x, y, zoom });
           resolve(result);
@@ -55,7 +84,14 @@ export class CameraUtils {
   static relativeMove = async ({ camParams, x, y, zoom }) =>
     new Promise((resolve, reject) => {
       new Cam(camParams, function (err) {
-        if (err) return reject(err);
+        if (err) {
+          return reject(err);
+        }
+
+        if (cameraLock[camParams.hostname]) {
+          return reject({ error: "Camera is locked" });
+        }
+
         try {
           const result = this.relativeMove({ x, y, zoom });
           resolve(result);
@@ -78,7 +114,7 @@ export class CameraUtils {
       });
     });
 
-  static getSnapshotUri = async ({ camParams }) => 
+  static getSnapshotUri = async ({ camParams }) =>
     new Promise((resolve, reject) => {
       new Cam(camParams, function (err) {
         if (err) return reject(err);
@@ -92,8 +128,4 @@ export class CameraUtils {
         }
       });
     });
-
-
-
-  
 }

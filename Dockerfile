@@ -1,16 +1,28 @@
-FROM node:17-alpine
+FROM node:20-alpine AS build
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
-COPY package*.json ./
-
+COPY package.*json ./
 RUN npm install
-#RUN npm ci
 
 COPY . .
+RUN npm run build
 
-RUN chmod +x ./start.sh
+
+FROM node:20-alpine AS production
+
+WORKDIR /app
+
+RUN mkdir /app/images
+
+COPY package.*json ./
+RUN npm install --omit=dev
+
+COPY --from=build /app/prisma ./prisma
+COPY --from=build /app/dist ./dist
+
+COPY start.sh ./
+RUN chmod +x start.sh
 
 EXPOSE 8090
-
-ENTRYPOINT [ "./start.sh" ]
+CMD ["./start.sh"]

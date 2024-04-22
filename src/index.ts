@@ -1,0 +1,29 @@
+import * as cron from "node-cron";
+
+import { automatedDailyRounds } from "@/cron/automatedDailyRounds";
+import { retrieveAssetConfig } from "@/cron/retrieveAssetConfig";
+import { initServer } from "@/server";
+import { port } from "@/utils/configs";
+
+process.env.AWS_SDK_JS_SUPPRESS_MAINTENANCE_MODE_MESSAGE = "1";
+process.env.CHECKPOINT_DISABLE = "1";
+
+// entrypoint
+(async () => {
+  const server = initServer();
+
+  // need the server to be up for open-id auth to work
+  setTimeout(() => {
+    retrieveAssetConfig();
+
+    cron.schedule("0 */6 * * *", retrieveAssetConfig);
+
+    cron.schedule("0 */1 * * *", automatedDailyRounds);
+  }, 100);
+
+  server.listen(port, () =>
+    console.log(
+      `[SERVER] : Middleware App listening at http://localhost:${port}`,
+    ),
+  );
+})();
