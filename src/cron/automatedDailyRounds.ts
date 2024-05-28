@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
+import { randomUUID } from "crypto";
 import fs from "fs";
 import path from "path";
 
@@ -9,16 +10,26 @@ import prisma from "@/lib/prisma";
 import { AssetBed } from "@/types/asset";
 import { CameraParams } from "@/types/camera";
 import { CarePaginatedResponse } from "@/types/care";
-import { DailyRoundObservation, Observation, ObservationType } from "@/types/observation";
+import {
+  DailyRoundObservation,
+  Observation,
+  ObservationType,
+} from "@/types/observation";
 import { OCRV2Response } from "@/types/ocr";
 import { CameraUtils } from "@/utils/CameraUtils";
 import { isValid } from "@/utils/ObservationUtils";
 import { generateHeaders } from "@/utils/assetUtils";
-import { careApi, openaiApiKey, saveDailyRound } from "@/utils/configs";
+import {
+  careApi,
+  hostname,
+  openaiApiKey,
+  s3SaveDailyRound,
+  saveDailyRound,
+} from "@/utils/configs";
 import { getPatientId } from "@/utils/dailyRoundUtils";
 import { downloadImage } from "@/utils/downloadImageWithDigestRouter";
+import { makeDataDumpToJson } from "@/utils/makeDataDump";
 import { parseVitalsFromImage } from "@/utils/ocr";
-
 
 const UPDATE_INTERVAL = 60 * 60 * 1000;
 
@@ -64,8 +75,8 @@ export async function getMonitorPreset(bedId: string, assetId: string) {
 export async function saveImageLocally(
   snapshotUrl: string,
   camParams: CameraParams,
+  fileName = `image--${new Date().getTime()}.jpeg`,
 ) {
-  const fileName = `image--${new Date().getTime()}.jpeg`;
   const imagePath = path.resolve("images", fileName);
   await downloadImage(
     snapshotUrl,
@@ -92,7 +103,7 @@ export async function getVitalsFromImage(imageUrl: string) {
   //     ? date.toISOString()
   //     : new Date().toISOString();
   const isoDate = new Date().toISOString();
-  
+
   const payload = {
     taken_at: isoDate,
     spo2: data.spO2?.oxygen_saturation_percentage ?? null,
@@ -281,11 +292,16 @@ export async function automatedDailyRounds() {
       return;
     }
 
-    let vitals: DailyRoundObservation | null = await getVitalsFromObservations(
-      monitor.ipAddress,
-    );
+    const _id = randomUUID();
+    let vitals: DailyRoundObservation | null = s3SaveDailyRound
+      ? null
+      : await getVitalsFromObservations(monitor.ipAddress);
 
-    console.log(`Vitals from observations: ${JSON.stringify(vitals)}`);
+    console.log(
+      saveDailyRound
+        ? "Skipping vitals from observations as saving daily round is enabled"
+        : `Vitals from observations: ${JSON.stringify(vitals)}`,
+    );
 
     if (!vitals && openaiApiKey) {
       if (!asset_beds || asset_beds.length === 0) {
@@ -325,12 +341,31 @@ export async function automatedDailyRounds() {
       const snapshotUrl = await CameraUtils.getSnapshotUri({
         camParams: camera,
       });
-      const imageUrl = await saveImageLocally(snapshotUrl.uri, camera);
+      const imageUrl = await saveImageLocally(snapshotUrl.uri, camera, _id);
 
       CameraUtils.unlockCamera(camera.hostname);
 
       vitals = await getVitalsFromImage(imageUrl);
       console.log(`Vitals from image: ${JSON.stringify(vitals)}`);
+    }
+
+    if (s3SaveDailyRound) {
+      const vitalsFromObservation = await getVitalsFromObservations(
+        monitor.ipAddress,
+      );
+      console.log(
+        `Vitals from observations: ${JSON.stringify(vitalsFromObservation)}`,
+      );
+
+      makeDataDumpToJson(
+        {
+          vitalsFromObservation,
+          vitalsFromImage: vitals,
+        },
+        `${hostname}/daily-rounds/${_id}.json`,
+      );
+
+      vitals = vitalsFromObservation ?? vitals;
     }
 
     if (!vitals || !payloadHasData(vitals)) {

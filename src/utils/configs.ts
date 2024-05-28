@@ -33,4 +33,10 @@ export const s3BucketName = process.env.S3_BUCKET_NAME;
 export const s3AccessKeyId = process.env.S3_ACCESS_KEY_ID;
 export const s3SecretAccessKey = process.env.S3_SECRET_ACCESS_KEY;
 
+export const s3SaveDailyRound =
+  Boolean(process.env.S3_SAVE_DAILY_ROUND) &&
+  s3BucketName &&
+  s3AccessKeyId &&
+  s3SecretAccessKey;
+
 export const openaiApiKey = process.env.OPENAI_API_KEY ?? "";
