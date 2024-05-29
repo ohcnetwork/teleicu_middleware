@@ -40,3 +40,8 @@ export const s3SaveDailyRound =
   s3SecretAccessKey;
 
 export const openaiApiKey = process.env.OPENAI_API_KEY ?? "";
+export const openaiEndpoint = process.env.OPENAI_ENDPOINT ?? "";
+export const openaiApiVersion = process.env.OPENAI_API_VERSION ?? "2024-02-01";
+export const openaiVisionModel =
+  process.env.OPENAI_VISION_MODEL ?? "vision-preview";
+export const openaiUseAzure = openaiEndpoint.includes("azure.com");
