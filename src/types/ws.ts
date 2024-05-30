@@ -1,6 +1,8 @@
 import type { WebSocket as InitialWebSocket } from "ws";
+import { User } from "./user";
 
 export interface WebSocket extends InitialWebSocket {
-  route?: string;
   params?: Record<string, string>;
+  route?: string;
+  user?: User;
 }

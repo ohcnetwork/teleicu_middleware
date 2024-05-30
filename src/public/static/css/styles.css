@@ -1,0 +1,15 @@
+#server-status-dot[data-status="red"] .animate-ping {
+  background-color: #f87171 !important; /* Tailwind CSS bg-red-400 */
+}
+
+#server-status-dot[data-status="red"] .relative {
+  background-color: #dc2626 !important; /* Tailwind CSS bg-red-600 */
+}
+
+#server-status-dot[data-status="green"] .animate-ping {
+  background-color: #34d399 !important; /* Tailwind CSS bg-green-400 */
+}
+
+#server-status-dot[data-status="green"] .relative {
+  background-color: #059669 !important; /* Tailwind CSS bg-green-600 */
+}

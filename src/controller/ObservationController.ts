@@ -246,7 +246,7 @@ export class ObservationController {
     updateLastObservationData(flattenedObservations);
     this.latestObservation.set(flattenedObservations);
 
-    filterClients(req.wsInstance.getWss(), "/observations").forEach(
+    filterClients(req.wsInstance.getWss(), "/observations", undefined).forEach(
       (client: WebSocket) => {
         const filteredObservations = flattenedObservations?.filter(
           (observation: Observation) =>
