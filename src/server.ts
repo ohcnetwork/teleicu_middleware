@@ -10,7 +10,6 @@ import path from "path";
 import swaggerUi from "swagger-ui-express";
 
 import { OpenidConfigController } from "@/controller/OpenidConfigController";
-import { ServerStatusController } from "@/controller/ServerStatusController";
 import { randomString } from "@/lib/crypto";
 import { errorHandler } from "@/middleware/errorHandler";
 import { getWs } from "@/middleware/getWs";
@@ -35,6 +34,7 @@ import {
   sentryEnv,
   sentryTracesSampleRate,
 } from "@/utils/configs";
+import { pushState } from "@/utils/serverStatusUtil";
 
 export function initServer() {
   const appBase = express();
@@ -74,6 +74,7 @@ export function initServer() {
   app.use(flash());
 
   app.use(getWs(ws));
+  app.use(morganWithWs);
 
   app.use(
     helmet({
@@ -86,9 +87,6 @@ export function initServer() {
 
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ extended: true }));
-
-  // logger
-  app.use(morganWithWs);
 
   if (nodeEnv === "debug") {
     app.use(requestLogger);
@@ -118,7 +116,12 @@ export function initServer() {
   );
 
   app.ws("/logger", (ws: WebSocket, req) => {
+    ws.user = req.user;
     ws.route = "/logger";
+    const timeout = pushState(ws);
+    ws.on("close", () => {
+      clearInterval(timeout);
+    });
   });
   app.ws("/observations/:ip", (ws: WebSocket, req) => {
     ws.route = "/observations";
@@ -130,9 +133,6 @@ export function initServer() {
   // Error handler
   app.use(Sentry.Handlers.errorHandler());
   app.use(errorHandler);
-
-  // Server status monitor
-  ServerStatusController.init(ws);
 
   return app;
 }
