@@ -93,7 +93,7 @@ function connect() {
   var ws = new WebSocket(url);
   ws.onopen = function () {
     console.log("Connected to server");
-    serverStatusDot.classList.add("bg-green-500");
+    serverStatusDot.setAttribute("data-status", "green");
     serverStatusText.innerText = "Connected";
   };
   const isFirstLog = {
@@ -134,8 +134,7 @@ function connect() {
       e.reason,
     );
 
-    serverStatusDot.classList.remove("bg-green-500");
-    serverStatusDot.classList.add("bg-red-500");
+    serverStatusDot.setAttribute("data-status", "red");
     serverStatusText.innerText = "Disconnected";
 
     cpuUsage.innerText = `---`;

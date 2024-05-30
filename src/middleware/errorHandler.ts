@@ -34,7 +34,9 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   };
 
   const server = req.wsInstance.getWss();
-  filterClients(server, "/logger").forEach((c) => c.send(JSON.stringify(data)));
+  filterClients(server, "/logger", true).forEach((c) =>
+    c.send(JSON.stringify(data)),
+  );
 
   if (nodeEnv === "development") {
     console.error(err);

@@ -1,6 +1,7 @@
 import type { Request } from "express";
 import morgan from "morgan";
 
+import type { WebSocket } from "@/types/ws";
 import { eventType } from "@/utils/eventTypeConstant";
 import { filterClients } from "@/utils/wsUtils";
 
@@ -14,9 +15,9 @@ export const morganWithWs = morgan(function (tokens, req: Request, res) {
   };
 
   const server = req.wsInstance.getWss("/logger");
-  filterClients(server, "/logger").forEach((client) =>
-    client.send(JSON.stringify({ type: eventType.Request, ...data })),
-  );
+  filterClients(server, "/logger", true).forEach((client: WebSocket) => {
+    client.send(JSON.stringify({ type: eventType.Request, ...data }));
+  });
 
   return Object.values(data).join(" ");
 });
