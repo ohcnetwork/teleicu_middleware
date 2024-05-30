@@ -19,17 +19,12 @@ import { OCRV2Response } from "@/types/ocr";
 import { CameraUtils } from "@/utils/CameraUtils";
 import { isValid } from "@/utils/ObservationUtils";
 import { generateHeaders } from "@/utils/assetUtils";
-import {
-  careApi,
-  hostname,
-  openaiApiKey,
-  s3SaveDailyRound,
-  saveDailyRound,
-} from "@/utils/configs";
+import { careApi, openaiApiKey, openaiApiVersion, openaiVisionModel, saveDailyRound, saveVitalsStat } from "@/utils/configs";
 import { getPatientId } from "@/utils/dailyRoundUtils";
 import { downloadImage } from "@/utils/downloadImageWithDigestRouter";
-import { makeDataDumpToJson } from "@/utils/makeDataDump";
 import { parseVitalsFromImage } from "@/utils/ocr";
+import { caclculateVitalsAccuracy } from "@/utils/vitalsAccuracy";
+
 
 const UPDATE_INTERVAL = 60 * 60 * 1000;
 
@@ -293,7 +288,7 @@ export async function automatedDailyRounds() {
     }
 
     const _id = randomUUID();
-    let vitals: DailyRoundObservation | null = s3SaveDailyRound
+    let vitals: DailyRoundObservation | null = saveVitalsStat
       ? null
       : await getVitalsFromObservations(monitor.ipAddress);
 
@@ -349,7 +344,7 @@ export async function automatedDailyRounds() {
       console.log(`Vitals from image: ${JSON.stringify(vitals)}`);
     }
 
-    if (s3SaveDailyRound) {
+    if (saveVitalsStat) {
       const vitalsFromObservation = await getVitalsFromObservations(
         monitor.ipAddress,
       );
@@ -357,13 +352,36 @@ export async function automatedDailyRounds() {
         `Vitals from observations: ${JSON.stringify(vitalsFromObservation)}`,
       );
 
-      makeDataDumpToJson(
-        {
-          vitalsFromObservation,
-          vitalsFromImage: vitals,
-        },
-        `${hostname}/daily-rounds/${_id}.json`,
-      );
+      const accuracy = caclculateVitalsAccuracy(vitals, vitalsFromObservation);
+
+      if (accuracy !== null) {
+        console.log(`Accuracy: ${accuracy}%`);
+
+        const lastVitalRecord = await prisma.vitalsStat.findFirst({
+          orderBy: { createdAt: "desc" },
+        });
+        const weight = lastVitalRecord?.id; // number of records
+        const cumulativeAccuracy = lastVitalRecord
+          ? (weight! * lastVitalRecord.cumulativeAccuracy + accuracy) /
+            (weight! + 1)
+          : accuracy;
+
+        prisma.vitalsStat.create({
+          data: {
+            imageId: _id,
+            vitalsFromImage: JSON.parse(JSON.stringify(vitals)),
+            vitalsFromObservation: JSON.parse(
+              JSON.stringify(vitalsFromObservation),
+            ),
+            gptDetails: {
+              model: openaiVisionModel,
+              version: openaiApiVersion,
+            },
+            accuracy,
+            cumulativeAccuracy,
+          },
+        });
+      }
 
       vitals = vitalsFromObservation ?? vitals;
     }

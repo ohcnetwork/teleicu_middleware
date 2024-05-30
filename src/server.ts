@@ -9,6 +9,8 @@ import helmet from "helmet";
 import path from "path";
 import swaggerUi from "swagger-ui-express";
 
+
+
 import { OpenidConfigController } from "@/controller/OpenidConfigController";
 import { ServerStatusController } from "@/controller/ServerStatusController";
 import { randomString } from "@/lib/crypto";
@@ -27,6 +29,7 @@ import { healthRouter } from "@/router/healthRouter";
 import { observationRouter } from "@/router/observationRouter";
 import { serverStatusRouter } from "@/router/serverStatusRouter";
 import { streamAuthApiRouter } from "@/router/streamAuthApiRouter";
+import { vitalsStatRouter } from "@/router/vitalsStatRouter";
 import { swaggerSpec } from "@/swagger/swagger";
 import type { WebSocket } from "@/types/ws";
 import {
@@ -110,6 +113,7 @@ export function initServer() {
   app.use("/assets", assetConfigRouter);
   app.use("/api/assets", assetConfigApiRouter);
   app.use("/api/stream", streamAuthApiRouter);
+  app.use("/api/vitals-stats", vitalsStatRouter);
 
   app.get("/.well-known/jwks.json", OpenidConfigController.publicJWKs);
   app.get(
