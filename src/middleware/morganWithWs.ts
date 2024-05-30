@@ -16,7 +16,6 @@ export const morganWithWs = morgan(function (tokens, req: Request, res) {
 
   const server = req.wsInstance.getWss("/logger");
   filterClients(server, "/logger", true).forEach((client: WebSocket) => {
-    console.log("client", client?.user?.id);
     client.send(JSON.stringify({ type: eventType.Request, ...data }));
   });
 
