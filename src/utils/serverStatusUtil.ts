@@ -26,10 +26,10 @@ setInterval(() => {
   });
 }, 1000);
 
-function pushState(client: WebSocket) {
+function sendStatus(client: WebSocket) {
   return setInterval(() => {
     client.send(JSON.stringify(State));
   }, 1000);
 }
 
-export { State, pushState };
+export { State, sendStatus };

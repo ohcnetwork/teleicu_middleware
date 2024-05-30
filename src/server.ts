@@ -34,7 +34,7 @@ import {
   sentryEnv,
   sentryTracesSampleRate,
 } from "@/utils/configs";
-import { pushState } from "@/utils/serverStatusUtil";
+import { sendStatus } from "@/utils/serverStatusUtil";
 
 export function initServer() {
   const appBase = express();
@@ -118,7 +118,7 @@ export function initServer() {
   app.ws("/logger", (ws: WebSocket, req) => {
     ws.user = req.user;
     ws.route = "/logger";
-    const timeout = pushState(ws);
+    const timeout = sendStatus(ws);
     ws.on("close", () => {
       clearInterval(timeout);
     });
