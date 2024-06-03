@@ -21,6 +21,7 @@ export const sentryTracesSampleRate = parseFloat(
 );
 
 export const saveDailyRound = Boolean(process.env.SAVE_DAILY_ROUND ?? "true");
+export const saveVitalsStat = Boolean(process.env.SAVE_VITALS_STAT ?? "true");
 
 export const s3Provider = process.env.S3_PROVIDER ?? "AWS";
 export const s3Endpoint =
@@ -33,4 +34,16 @@ export const s3BucketName = process.env.S3_BUCKET_NAME;
 export const s3AccessKeyId = process.env.S3_ACCESS_KEY_ID;
 export const s3SecretAccessKey = process.env.S3_SECRET_ACCESS_KEY;
 
+export const s3DumpVitalsStat = Boolean(
+  process.env.S3_DUMP_VITALS_STAT ?? "false",
+);
+export const deleteVitalsStatOnDump = Boolean(
+  process.env.DELETE_VITALS_STAT_ON_DUMP ?? "false",
+);
+
 export const openaiApiKey = process.env.OPENAI_API_KEY ?? "";
+export const openaiEndpoint = process.env.OPENAI_ENDPOINT ?? "";
+export const openaiApiVersion = process.env.OPENAI_API_VERSION ?? "2024-02-01";
+export const openaiVisionModel =
+  process.env.OPENAI_VISION_MODEL ?? "vision-preview";
+export const openaiUseAzure = openaiEndpoint.includes("azure.com");

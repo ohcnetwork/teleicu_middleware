@@ -65,3 +65,15 @@ model DailyRound {
   time            DateTime @default(now())
   asset           Asset    @relation(fields: [assetExternalId], references: [externalId], onDelete: Cascade, onUpdate: Cascade)
 }
+
+model VitalsStat {
+  id                    Int      @id @default(autoincrement())
+  imageId               String
+  vitalsFromObservation Json
+  vitalsFromImage       Json
+  gptDetails            Json
+  accuracy              Float
+  cumulativeAccuracy    Float
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}

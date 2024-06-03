@@ -24,7 +24,7 @@
     "morgan": "^1.10.0",
     "node-cron": "^3.0.3",
     "onvif": "^0.6.5",
-    "openai": "^4.33.1",
+    "openai": "^4.47.2",
     "pidusage": "^3.0.0",
     "sharp": "^0.33.3",
     "swagger-jsdoc": "^6.1.0",
