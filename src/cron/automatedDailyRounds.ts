@@ -144,7 +144,7 @@ export async function fileAutomatedDailyRound(
     .catch((error: AxiosError) => error.response);
 
   if (saveDailyRound) {
-    prisma.dailyRound.create({
+    await prisma.dailyRound.create({
       data: {
         assetExternalId: assetId,
         status: response?.statusText ?? "FAILED",
@@ -366,7 +366,7 @@ export async function automatedDailyRounds() {
             (weight! + 1)
           : accuracy;
 
-        prisma.vitalsStat.create({
+        await prisma.vitalsStat.create({
           data: {
             imageId: _id,
             vitalsFromImage: JSON.parse(JSON.stringify(vitals)),

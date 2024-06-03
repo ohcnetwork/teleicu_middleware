@@ -1,6 +1,5 @@
 import * as dotenv from "dotenv";
 
-
 dotenv.config();
 
 export const nodeEnv = process.env.NODE_ENV ?? "development";
@@ -20,8 +19,10 @@ export const sentryTracesSampleRate = parseFloat(
   process.env.SENTRY_SAMPLE_RATE ?? "0.01",
 );
 
-export const saveDailyRound = Boolean(process.env.SAVE_DAILY_ROUND ?? "true");
-export const saveVitalsStat = Boolean(process.env.SAVE_VITALS_STAT ?? "true");
+export const saveDailyRound =
+  (process.env.SAVE_DAILY_ROUND || "true") === "true";
+export const saveVitalsStat =
+  (process.env.SAVE_VITALS_STAT || "true") === "true";
 
 export const s3Provider = process.env.S3_PROVIDER ?? "AWS";
 export const s3Endpoint =
@@ -34,12 +35,10 @@ export const s3BucketName = process.env.S3_BUCKET_NAME;
 export const s3AccessKeyId = process.env.S3_ACCESS_KEY_ID;
 export const s3SecretAccessKey = process.env.S3_SECRET_ACCESS_KEY;
 
-export const s3DumpVitalsStat = Boolean(
-  process.env.S3_DUMP_VITALS_STAT ?? "false",
-);
-export const deleteVitalsStatOnDump = Boolean(
-  process.env.DELETE_VITALS_STAT_ON_DUMP ?? "false",
-);
+export const s3DumpVitalsStat =
+  (process.env.S3_DUMP_VITALS_STAT || "false") === "true";
+export const deleteVitalsStatOnDump =
+  (process.env.DELETE_VITALS_STAT_ON_DUMP || "false") === "true";
 
 export const openaiApiKey = process.env.OPENAI_API_KEY ?? "";
 export const openaiEndpoint = process.env.OPENAI_ENDPOINT ?? "";
