@@ -1,12 +1,7 @@
-import {
-  openaiApiKey,
-  openaiApiVersion,
-  openaiEndpoint,
-  openaiUseAzure,
-  openaiVisionModel,
-} from "./configs";
+import { openaiApiKey, openaiApiVersion, openaiEndpoint, openaiUseAzure, openaiVisionModel } from "./configs";
 import { AzureOpenAI, OpenAI } from "openai";
 import sharp from "sharp";
+
 
 const openai = openaiUseAzure
   ? new AzureOpenAI({
@@ -48,7 +43,7 @@ export async function parseVitalsFromImage(image: Buffer) {
         NOTE: Many fields from below example can be missing, you need to output null for those fields.
             
         Example output in minified JSON format:   
-        {"time_stamp":"yyyy-mm-ddThh:mm:ss","ecg":{"Heart_Rate_bpm":<value/null>},"nibp":{"systolic_mmhg":<value/null>,"diastolic_mmhg":<value/null>,"mean_arterial_pressure_mmhg":<value/null>},"spO2":{"oxygen_saturation_percentage":<value/null>},"respiration_rate":{"breaths_per_minute":<value/null>},"temperature":{"fahrenheit":<value/null>}}
+        {"time_stamp":"yyyy-mm-ddThh:mm:ssZ","ecg":{"Heart_Rate_bpm":<value/null>},"nibp":{"systolic_mmhg":<value/null>,"diastolic_mmhg":<value/null>,"mean_arterial_pressure_mmhg":<value/null>},"spO2":{"oxygen_saturation_percentage":<value/null>},"respiration_rate":{"breaths_per_minute":<value/null>},"temperature":{"fahrenheit":<value/null>}}
 
         The output should be minified JSON format only.
         `.trim(),

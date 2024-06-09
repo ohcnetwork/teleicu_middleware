@@ -5,7 +5,10 @@ import path from "path";
 
 
 
-import { staticObservations } from "@/controller/ObservationController";
+import {
+  observationData,
+  staticObservations,
+} from "@/controller/ObservationController";
 import prisma from "@/lib/prisma";
 import { AssetBed } from "@/types/asset";
 import { CameraParams } from "@/types/camera";
@@ -24,6 +27,7 @@ import { getPatientId } from "@/utils/dailyRoundUtils";
 import { downloadImage } from "@/utils/downloadImageWithDigestRouter";
 import { parseVitalsFromImage } from "@/utils/ocr";
 import { caclculateVitalsAccuracy } from "@/utils/vitalsAccuracy";
+
 
 
 const UPDATE_INTERVAL = 60 * 60 * 1000;
@@ -92,12 +96,11 @@ export async function getVitalsFromImage(imageUrl: string) {
     return null;
   }
 
-  // const date = data.time_stamp ? new Date(data.time_stamp) : new Date();
-  // const isoDate =
-  //   date.toString() !== "Invalid Date"
-  //     ? date.toISOString()
-  //     : new Date().toISOString();
-  const isoDate = new Date().toISOString();
+  const date = data.time_stamp ? new Date(data.time_stamp) : new Date();
+  const isoDate =
+    date.toString() !== "Invalid Date"
+      ? date.toISOString()
+      : new Date().toISOString();
 
   const payload = {
     taken_at: isoDate,
@@ -293,12 +296,14 @@ export async function automatedDailyRounds() {
       : await getVitalsFromObservations(monitor.ipAddress);
 
     console.log(
-      saveDailyRound
-        ? "Skipping vitals from observations as saving daily round is enabled"
+      saveVitalsStat
+        ? "Skipping vitals from observations as saving vitals stat is enabled"
         : `Vitals from observations: ${JSON.stringify(vitals)}`,
     );
 
     if (!vitals && openaiApiKey) {
+      console.log(`Getting vitals from camera for the patient ${patient_id}`);
+
       if (!asset_beds || asset_beds.length === 0) {
         console.error(
           `No asset beds found for the asset ${monitor.externalId}`,
@@ -345,6 +350,7 @@ export async function automatedDailyRounds() {
     }
 
     if (saveVitalsStat) {
+      // TODO: get the nearest observation and parse it as vitals
       const vitalsFromObservation = await getVitalsFromObservations(
         monitor.ipAddress,
       );
@@ -352,6 +358,7 @@ export async function automatedDailyRounds() {
         `Vitals from observations: ${JSON.stringify(vitalsFromObservation)}`,
       );
 
+      // TODO: update the vitals accuracy calculation
       const accuracy = caclculateVitalsAccuracy(vitals, vitalsFromObservation);
 
       if (accuracy !== null) {
@@ -366,6 +373,7 @@ export async function automatedDailyRounds() {
             (weight! + 1)
           : accuracy;
 
+        // TODO: update the db schema
         prisma.vitalsStat.create({
           data: {
             imageId: _id,
@@ -383,9 +391,11 @@ export async function automatedDailyRounds() {
         });
       }
 
+      // TODO: get the vitals from the observation and update the vitals
       vitals = vitalsFromObservation ?? vitals;
     }
 
+    // TODO: move this check into the respective vitals functions
     if (!vitals || !payloadHasData(vitals)) {
       console.error(`No vitals found for the patient ${patient_id}`);
       return;
