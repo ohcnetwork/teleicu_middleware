@@ -1,13 +1,23 @@
 import { DailyRoundObservation } from "@/types/observation";
 
+
 type ComparisonType = "relative" | "fixed";
+
+type AccuracyMetrics = {
+  field: string;
+  accuracy: number;
+  falsePositive: number;
+  falseNegative: number;
+};
+
+export type Accuracy = { overall: number; metrics: AccuracyMetrics[] };
 
 function calculateAccuracy(
   obj1: Object,
   obj2: Object,
   keysToCompare: string[],
   comparisonType: ComparisonType = "relative",
-) {
+): AccuracyMetrics[] {
   function compareValues(
     value1: number,
     value2: number,
@@ -37,22 +47,41 @@ function calculateAccuracy(
     return key.split(".").reduce((o, k) => (o ? o[k] : undefined), obj);
   }
 
-  let totalScore = 0;
+  const metrics: AccuracyMetrics[] = [];
 
   for (const key of keysToCompare) {
     const value1 = getValue(obj1, key);
     const value2 = getValue(obj2, key);
-    totalScore += compareValues(value1, value2, comparisonType);
+    const accuracy = compareValues(value1, value2, comparisonType);
+    const falsePositive =
+      (value1 === null || value1 === undefined) &&
+      value2 !== null &&
+      value2 !== undefined
+        ? 1
+        : 0;
+    const falseNegative =
+      value1 !== null &&
+      value1 !== undefined &&
+      (value2 === null || value2 === undefined)
+        ? 1
+        : 0;
+
+    metrics.push({
+      field: key,
+      accuracy,
+      falsePositive,
+      falseNegative,
+    });
   }
 
-  return (totalScore / keysToCompare.length) * 100;
+  return metrics;
 }
 
-export function caclculateVitalsAccuracy(
+export function calculateVitalsAccuracy(
   vitals: DailyRoundObservation | null | undefined,
   original: DailyRoundObservation | null | undefined,
   type: ComparisonType = "relative",
-) {
+): Accuracy | null {
   if (!vitals || !original) {
     return null;
   }
@@ -67,5 +96,13 @@ export function caclculateVitalsAccuracy(
     "bp.diastolic",
   ];
 
-  return calculateAccuracy(vitals, original, keysToCompare, type);
+  const metrics = calculateAccuracy(vitals, original, keysToCompare, type);
+  const overall =
+    metrics.reduce((acc, curr) => acc + curr.accuracy, 0) /
+    keysToCompare.length;
+
+  return {
+    overall: overall * 100,
+    metrics,
+  };
 }

@@ -72,8 +72,8 @@ model VitalsStat {
   vitalsFromObservation Json
   vitalsFromImage       Json
   gptDetails            Json
-  accuracy              Float
-  cumulativeAccuracy    Float
+  accuracy              Json
+  cumulativeAccuracy    Json
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 }

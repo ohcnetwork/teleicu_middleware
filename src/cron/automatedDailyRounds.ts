@@ -26,7 +26,7 @@ import { careApi, openaiApiKey, openaiApiVersion, openaiVisionModel, saveDailyRo
 import { getPatientId } from "@/utils/dailyRoundUtils";
 import { downloadImage } from "@/utils/downloadImageWithDigestRouter";
 import { parseVitalsFromImage } from "@/utils/ocr";
-import { caclculateVitalsAccuracy } from "@/utils/vitalsAccuracy";
+import { Accuracy, calculateVitalsAccuracy } from "@/utils/vitalsAccuracy";
 
 
 
@@ -358,22 +358,43 @@ export async function automatedDailyRounds() {
         `Vitals from observations: ${JSON.stringify(vitalsFromObservation)}`,
       );
 
-      // TODO: update the vitals accuracy calculation
-      const accuracy = caclculateVitalsAccuracy(vitals, vitalsFromObservation);
+      const accuracy = calculateVitalsAccuracy(vitals, vitalsFromObservation);
 
       if (accuracy !== null) {
-        console.log(`Accuracy: ${accuracy}%`);
+        console.log(`Accuracy: ${accuracy.overall}%`);
 
         const lastVitalRecord = await prisma.vitalsStat.findFirst({
           orderBy: { createdAt: "desc" },
         });
         const weight = lastVitalRecord?.id; // number of records
-        const cumulativeAccuracy = lastVitalRecord
-          ? (weight! * lastVitalRecord.cumulativeAccuracy + accuracy) /
-            (weight! + 1)
-          : accuracy;
+        const cumulativeAccuracy = (
+          lastVitalRecord?.cumulativeAccuracy as Accuracy
+        ).metrics.map((metric) => {
+          const latestMetric = accuracy.metrics.find(
+            (m) => m.field === metric.field,
+          );
 
-        // TODO: update the db schema
+          return {
+            ...metric,
+            accuracy: lastVitalRecord
+              ? (metric.accuracy * weight! + latestMetric?.accuracy!) /
+                (weight! + 1)
+              : latestMetric?.accuracy!,
+            falsePositive:
+              lastVitalRecord && latestMetric?.falsePositive
+                ? (metric.falsePositive! * weight! +
+                    latestMetric?.falsePositive!) /
+                  (weight! + 1)
+                : metric.falsePositive,
+            falseNegative:
+              lastVitalRecord && latestMetric?.falseNegative
+                ? (metric.falseNegative! * weight! +
+                    latestMetric?.falseNegative!) /
+                  (weight! + 1)
+                : metric.falseNegative,
+          };
+        });
+
         prisma.vitalsStat.create({
           data: {
             imageId: _id,
