@@ -32,7 +32,7 @@
     "uuid": "^9.0.1"
   },
   "scripts": {
-    "copy-assets": "node tools/copyAssets.js",
+    "copy-assets": "cp -r src/views src/public dist/.",
     "build": "prisma generate && tsc && tsc-alias && npm run copy-assets",
     "dev": "nodemon",
     "debug": "nodemon --inspect",
@@ -76,7 +76,6 @@
     "nodemon": "^2.0.19",
     "prettier": "^3.2.5",
     "prisma": "^5.9.1",
-    "shelljs": "^0.8.5",
     "ts-node": "^10.9.1",
     "tsc-alias": "^1.8.8",
     "tsconfig-paths": "^4.2.0",

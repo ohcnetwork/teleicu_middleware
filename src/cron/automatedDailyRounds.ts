@@ -10,7 +10,11 @@ import prisma from "@/lib/prisma";
 import { AssetBed } from "@/types/asset";
 import { CameraParams } from "@/types/camera";
 import { CarePaginatedResponse } from "@/types/care";
-import { DailyRoundObservation, Observation, ObservationType } from "@/types/observation";
+import {
+  DailyRoundObservation,
+  Observation,
+  ObservationType,
+} from "@/types/observation";
 import { OCRV2Response } from "@/types/ocr";
 import { CameraUtils } from "@/utils/CameraUtils";
 import { isValid } from "@/utils/ObservationUtils";
@@ -139,7 +143,7 @@ export async function fileAutomatedDailyRound(
     .catch((error: AxiosError) => error.response);
 
   if (saveDailyRound) {
-    prisma.dailyRound.create({
+    await prisma.dailyRound.create({
       data: {
         assetExternalId: assetId,
         status: response?.statusText ?? "FAILED",

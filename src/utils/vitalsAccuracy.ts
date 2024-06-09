@@ -1,6 +1,5 @@
 import { DailyRoundObservation } from "@/types/observation";
 
-
 type ComparisonType = "relative" | "fixed";
 
 type AccuracyMetrics = {

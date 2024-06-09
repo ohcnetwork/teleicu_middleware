@@ -1,7 +1,12 @@
-import { openaiApiKey, openaiApiVersion, openaiEndpoint, openaiUseAzure, openaiVisionModel } from "./configs";
+import {
+  openaiApiKey,
+  openaiApiVersion,
+  openaiEndpoint,
+  openaiUseAzure,
+  openaiVisionModel,
+} from "./configs";
 import { AzureOpenAI, OpenAI } from "openai";
 import sharp from "sharp";
-
 
 const openai = openaiUseAzure
   ? new AzureOpenAI({
