@@ -5,7 +5,7 @@ import path from "path";
 
 
 
-import { staticObservations } from "@/controller/ObservationController";
+import { observationData, staticObservations } from "@/controller/ObservationController";
 import prisma from "@/lib/prisma";
 import { AssetBed } from "@/types/asset";
 import { CameraParams } from "@/types/camera";
@@ -23,7 +23,7 @@ import { careApi, openaiApiKey, openaiApiVersion, openaiVisionModel, saveDailyRo
 import { getPatientId } from "@/utils/dailyRoundUtils";
 import { downloadImage } from "@/utils/downloadImageWithDigestRouter";
 import { parseVitalsFromImage } from "@/utils/ocr";
-import { caclculateVitalsAccuracy } from "@/utils/vitalsAccuracy";
+import { Accuracy, calculateVitalsAccuracy } from "@/utils/vitalsAccuracy";
 
 
 const UPDATE_INTERVAL = 60 * 60 * 1000;
@@ -92,12 +92,11 @@ export async function getVitalsFromImage(imageUrl: string) {
     return null;
   }
 
-  // const date = data.time_stamp ? new Date(data.time_stamp) : new Date();
-  // const isoDate =
-  //   date.toString() !== "Invalid Date"
-  //     ? date.toISOString()
-  //     : new Date().toISOString();
-  const isoDate = new Date().toISOString();
+  const date = data.time_stamp ? new Date(data.time_stamp) : new Date();
+  const isoDate =
+    date.toString() !== "Invalid Date"
+      ? date.toISOString()
+      : new Date().toISOString();
 
   const payload = {
     taken_at: isoDate,
@@ -127,7 +126,7 @@ export async function getVitalsFromImage(imageUrl: string) {
     payload.bp = {};
   }
 
-  return payload;
+  return payloadHasData(payload) ? payload : null;
 }
 
 export async function fileAutomatedDailyRound(
@@ -231,7 +230,7 @@ export async function getVitalsFromObservations(assetHostname: string) {
   }
 
   const data = observation.observations;
-  return {
+  const vitals = {
     taken_at: observation.last_updated,
     spo2: getValueFromData("SpO2", data),
     ventilator_spo2: getValueFromData("SpO2", data),
@@ -248,6 +247,8 @@ export async function getVitalsFromObservations(assetHostname: string) {
     rounds_type: "AUTOMATED",
     is_parsed_by_ocr: false,
   } as DailyRoundObservation;
+
+  return payloadHasData(vitals) ? vitals : null;
 }
 
 export function payloadHasData(payload: Record<string, any>): boolean {
@@ -262,6 +263,72 @@ export function payloadHasData(payload: Record<string, any>): boolean {
 
     return true;
   });
+}
+
+export function getVitalsFromObservationsForAccuracy(
+  deviceId: string,
+  time: string,
+) {
+  // TODO: consider optimizing this
+  const observations = observationData
+    .reduce((acc, curr) => {
+      return [...acc, ...curr.data];
+    }, [] as Observation[][])
+    .find(
+      (observation) =>
+        observation[0].device_id === deviceId &&
+        new Date(observation[0]["date-time"]).toISOString() ===
+          new Date(time).toISOString(),
+    );
+
+  if (!observations) {
+    return null;
+  }
+
+  const vitals = observations.reduce(
+    (acc, curr) => {
+      switch (curr.observation_id) {
+        case "SpO2":
+          return { ...acc, spo2: curr.value, ventilator_spo2: curr.value };
+        case "respiratory-rate":
+          return { ...acc, resp: curr.value };
+        case "heart-rate":
+          return { ...acc, pulse: curr.value ?? acc.pulse };
+        case "pulse-rate":
+          return { ...acc, pulse: acc.pulse ?? curr.value };
+        case "body-temperature1":
+          return {
+            ...acc,
+            temperature: curr.value ?? acc.temperature,
+            temperature_measured_at: curr["date-time"],
+          };
+        case "body-temperature2":
+          return {
+            ...acc,
+            temperature: acc.temperature ?? curr.value,
+            temperature_measured_at: curr["date-time"],
+          };
+        case "blood-pressure":
+          return {
+            ...acc,
+            bp: {
+              systolic: curr.systolic.value,
+              diastolic: curr.diastolic.value,
+              map: curr.map?.value,
+            },
+          };
+        default:
+          return acc;
+      }
+    },
+    {
+      taken_at: time,
+      rounds_type: "AUTOMATED",
+      is_parsed_by_ocr: false,
+    } as DailyRoundObservation,
+  );
+
+  return payloadHasData(vitals) ? vitals : null;
 }
 
 export async function automatedDailyRounds() {
@@ -293,12 +360,14 @@ export async function automatedDailyRounds() {
       : await getVitalsFromObservations(monitor.ipAddress);
 
     console.log(
-      saveDailyRound
-        ? "Skipping vitals from observations as saving daily round is enabled"
+      saveVitalsStat
+        ? "Skipping vitals from observations as saving vitals stat is enabled"
         : `Vitals from observations: ${JSON.stringify(vitals)}`,
     );
 
     if (!vitals && openaiApiKey) {
+      console.log(`Getting vitals from camera for the patient ${patient_id}`);
+
       if (!asset_beds || asset_beds.length === 0) {
         console.error(
           `No asset beds found for the asset ${monitor.externalId}`,
@@ -344,29 +413,53 @@ export async function automatedDailyRounds() {
       console.log(`Vitals from image: ${JSON.stringify(vitals)}`);
     }
 
-    if (saveVitalsStat) {
-      const vitalsFromObservation = await getVitalsFromObservations(
+    if (vitals && saveVitalsStat) {
+      const vitalsFromObservation = await getVitalsFromObservationsForAccuracy(
         monitor.ipAddress,
+        new Date(vitals.taken_at!).toISOString(),
       );
       console.log(
-        `Vitals from observations: ${JSON.stringify(vitalsFromObservation)}`,
+        `Vitals from observations for accuracy: ${JSON.stringify(vitalsFromObservation)}`,
       );
 
-      const accuracy = caclculateVitalsAccuracy(vitals, vitalsFromObservation);
+      const accuracy = calculateVitalsAccuracy(vitals, vitalsFromObservation);
 
       if (accuracy !== null) {
-        console.log(`Accuracy: ${accuracy}%`);
+        console.log(`Accuracy: ${accuracy.overall}%`);
 
         const lastVitalRecord = await prisma.vitalsStat.findFirst({
           orderBy: { createdAt: "desc" },
         });
         const weight = lastVitalRecord?.id; // number of records
-        const cumulativeAccuracy = lastVitalRecord
-          ? (weight! * lastVitalRecord.cumulativeAccuracy + accuracy) /
-            (weight! + 1)
-          : accuracy;
+        const cumulativeAccuracy = (
+          lastVitalRecord?.cumulativeAccuracy as Accuracy
+        ).metrics.map((metric) => {
+          const latestMetric = accuracy.metrics.find(
+            (m) => m.field === metric.field,
+          );
 
-        await prisma.vitalsStat.create({
+          return {
+            ...metric,
+            accuracy: lastVitalRecord
+              ? (metric.accuracy * weight! + latestMetric?.accuracy!) /
+                (weight! + 1)
+              : latestMetric?.accuracy!,
+            falsePositive:
+              lastVitalRecord && latestMetric?.falsePositive
+                ? (metric.falsePositive! * weight! +
+                    latestMetric?.falsePositive!) /
+                  (weight! + 1)
+                : metric.falsePositive,
+            falseNegative:
+              lastVitalRecord && latestMetric?.falseNegative
+                ? (metric.falseNegative! * weight! +
+                    latestMetric?.falseNegative!) /
+                  (weight! + 1)
+                : metric.falseNegative,
+          };
+        });
+
+        prisma.vitalsStat.create({
           data: {
             imageId: _id,
             vitalsFromImage: JSON.parse(JSON.stringify(vitals)),
@@ -382,11 +475,17 @@ export async function automatedDailyRounds() {
           },
         });
       }
-
-      vitals = vitalsFromObservation ?? vitals;
     }
 
-    if (!vitals || !payloadHasData(vitals)) {
+    const vitalsFromObservation = await getVitalsFromObservations(
+      monitor.ipAddress,
+    );
+    console.log(
+      `Vitals from observations: ${JSON.stringify(vitalsFromObservation)}`,
+    );
+    vitals = vitalsFromObservation ?? vitals;
+
+    if (!vitals) {
       console.error(`No vitals found for the patient ${patient_id}`);
       return;
     }

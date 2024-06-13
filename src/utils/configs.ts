@@ -18,7 +18,6 @@ export const sentryEnv = process.env.SENTRY_ENV ?? "unknown";
 export const sentryTracesSampleRate = parseFloat(
   process.env.SENTRY_SAMPLE_RATE ?? "0.01",
 );
-
 export const saveDailyRound =
   (process.env.SAVE_DAILY_ROUND || "true") === "true";
 export const saveVitalsStat =

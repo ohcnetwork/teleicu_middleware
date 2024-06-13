@@ -1,20 +1,17 @@
 import { captureCheckIn } from "@sentry/node";
 import AWS from "aws-sdk";
 
-import {
-  s3AccessKeyId,
-  s3BucketName,
-  s3Endpoint,
-  s3Provider,
-  s3SecretAccessKey,
-} from "@/utils/configs";
+
+
+import { s3AccessKeyId, s3BucketName, s3Endpoint, s3Provider, s3SecretAccessKey } from "@/utils/configs";
+
 
 export const makeDataDumpToJson = async (
   data: Record<string, any> | any[],
   key: string,
   monitorOptions?: {
     slug: string;
-    options?: any;
+    options?: Parameters<typeof captureCheckIn>[1];
   },
 ) => {
   let checkInId: string | undefined = undefined;

@@ -1,3 +1,4 @@
+import { observationsS3Dump } from "./cron/observationsS3Dump";
 import { vitalsStatS3Dump } from "./cron/vitalsStatS3Dump";
 import * as cron from "node-cron";
 
@@ -20,6 +21,9 @@ process.env.CHECKPOINT_DISABLE = "1";
     cron.schedule("0 */6 * * *", retrieveAssetConfig); // every 6 hours
 
     cron.schedule("0 */1 * * *", automatedDailyRounds); // every hour
+
+    // scheduled to run at 30th minute of every hour so that the automatedDailyRounds can use the data without any issues
+    cron.schedule("30 * * * *", observationsS3Dump); // every hour (30th minute)
 
     if (s3DumpVitalsStat) {
       cron.schedule("0 0 * * *", vitalsStatS3Dump); // every day at midnight
