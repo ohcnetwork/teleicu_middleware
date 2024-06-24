@@ -11,12 +11,12 @@
 
       <h1 class="flex items-center text-xl">
         Server Status :&nbsp;
+        <span id="server-status-dot" class="flex h-4 w-4 items-center justify-center" data-status="red">
+          <span class="center absolute inline-flex h-4 w-4 animate-ping rounded-full"></span>
+          <span class="relative inline-flex h-3 w-3 rounded-full"></span>
+        </span>
 
-        <span
-          id="server-status-dot"
-          class="inline-block w-4 h-4 bg-red-500 rounded-full animate-ping"
-        ></span
-        >&nbsp;
+        &nbsp;
         <span id="server-status-text"> Disconnected</span>
       </h1>
 
@@ -48,6 +48,8 @@
           </div>
         </div>
       </div>
+      <% if (req?.user?.id ?? false) { %>
+      
       <div id="errors" class="my-16">
         <a href="#error-log" class="block text-xl my-4 font-bold"
           ># Error Logs</a
@@ -113,8 +115,14 @@
           </tbody>
         </table>
       </div>
+
+      <% } else { %>
+        <a class="block text-xl my-4 font-bold"># Logs</a>
+        <p>Log In to view request logs.</p>
+      <% } %>
+
     </main>
     <%- include("../partials/footer") %>
-    <script src="/assets/js/ws.js"></script>
+    <script src="/static/js/ws.js"></script>
   </body>
 </html>

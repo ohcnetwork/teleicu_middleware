@@ -52,7 +52,7 @@ export const getPatientId = async (assetExternalId: string) => {
 // };
 
 export const getBedById = async (bedId: string) => {
-  return prisma.bed.findFirst({
+  return await prisma.bed.findFirst({
     where: {
       externalId: bedId,
       deleted: false,

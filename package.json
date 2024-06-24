@@ -24,7 +24,7 @@
     "morgan": "^1.10.0",
     "node-cron": "^3.0.3",
     "onvif": "^0.6.5",
-    "openai": "^4.33.1",
+    "openai": "^4.47.2",
     "pidusage": "^3.0.0",
     "sharp": "^0.33.3",
     "swagger-jsdoc": "^6.1.0",
@@ -32,7 +32,7 @@
     "uuid": "^9.0.1"
   },
   "scripts": {
-    "copy-assets": "node tools/copyAssets.js",
+    "copy-assets": "cp -r src/views src/public dist/.",
     "build": "prisma generate && tsc && tsc-alias && npm run copy-assets",
     "dev": "nodemon",
     "debug": "nodemon --inspect",
@@ -76,7 +76,6 @@
     "nodemon": "^2.0.19",
     "prettier": "^3.2.5",
     "prisma": "^5.9.1",
-    "shelljs": "^0.8.5",
     "ts-node": "^10.9.1",
     "tsc-alias": "^1.8.8",
     "tsconfig-paths": "^4.2.0",

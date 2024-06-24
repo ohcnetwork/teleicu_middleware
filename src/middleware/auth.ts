@@ -105,7 +105,7 @@ export const jwtAuthNoVerify = (): RequestHandler => {
           req.user.id = payload.sub;
         }
       } catch (error: any) {
-        console.log(error);
+        console.warn(`JWT verification failed: ${error.code}`);
       }
     }
     next();

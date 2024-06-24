@@ -9,8 +9,9 @@ import helmet from "helmet";
 import path from "path";
 import swaggerUi from "swagger-ui-express";
 
+
+
 import { OpenidConfigController } from "@/controller/OpenidConfigController";
-import { ServerStatusController } from "@/controller/ServerStatusController";
 import { randomString } from "@/lib/crypto";
 import { errorHandler } from "@/middleware/errorHandler";
 import { getWs } from "@/middleware/getWs";
@@ -27,6 +28,7 @@ import { healthRouter } from "@/router/healthRouter";
 import { observationRouter } from "@/router/observationRouter";
 import { serverStatusRouter } from "@/router/serverStatusRouter";
 import { streamAuthApiRouter } from "@/router/streamAuthApiRouter";
+import { vitalsStatRouter } from "@/router/vitalsStatRouter";
 import { swaggerSpec } from "@/swagger/swagger";
 import type { WebSocket } from "@/types/ws";
 import {
@@ -35,6 +37,7 @@ import {
   sentryEnv,
   sentryTracesSampleRate,
 } from "@/utils/configs";
+import { sendStatus } from "@/utils/serverStatusUtil";
 
 export function initServer() {
   const appBase = express();
@@ -52,7 +55,7 @@ export function initServer() {
 
   app.set("view engine", "ejs");
   app.set("views", path.resolve(__dirname, "views"));
-  app.use(express.static(path.join(path.resolve(), "src/public")));
+  app.use(express.static(path.resolve(__dirname, "public")));
 
   app.use(cookieParser());
 
@@ -74,6 +77,7 @@ export function initServer() {
   app.use(flash());
 
   app.use(getWs(ws));
+  app.use(morganWithWs);
 
   app.use(
     helmet({
@@ -86,9 +90,6 @@ export function initServer() {
 
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ extended: true }));
-
-  // logger
-  app.use(morganWithWs);
 
   if (nodeEnv === "debug") {
     app.use(requestLogger);
@@ -110,6 +111,7 @@ export function initServer() {
   app.use("/assets", assetConfigRouter);
   app.use("/api/assets", assetConfigApiRouter);
   app.use("/api/stream", streamAuthApiRouter);
+  app.use("/api/vitals-stats", vitalsStatRouter);
 
   app.get("/.well-known/jwks.json", OpenidConfigController.publicJWKs);
   app.get(
@@ -118,7 +120,12 @@ export function initServer() {
   );
 
   app.ws("/logger", (ws: WebSocket, req) => {
+    ws.user = req.user;
     ws.route = "/logger";
+    const timeout = sendStatus(ws);
+    ws.on("close", () => {
+      clearInterval(timeout);
+    });
   });
   app.ws("/observations/:ip", (ws: WebSocket, req) => {
     ws.route = "/observations";
@@ -130,9 +137,6 @@ export function initServer() {
   // Error handler
   app.use(Sentry.Handlers.errorHandler());
   app.use(errorHandler);
-
-  // Server status monitor
-  ServerStatusController.init(ws);
 
   return app;
 }

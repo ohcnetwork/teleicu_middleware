@@ -1,17 +1,19 @@
 import type { Request, Response } from "express";
 
-
-
 import { BadRequestException } from "@/Exception/BadRequestException";
 import { NotFoundException } from "@/Exception/NotFoundException";
-import type { DailyRoundObservation, LastObservationData, Observation, ObservationStatus, ObservationType, ObservationTypeWithWaveformTypes, StaticObservation } from "@/types/observation";
+import type {
+  LastObservationData,
+  Observation,
+  ObservationStatus,
+  ObservationType,
+  ObservationTypeWithWaveformTypes,
+  StaticObservation,
+} from "@/types/observation";
 import { WebSocket } from "@/types/ws";
 import { ObservationsMap } from "@/utils/ObservationsMap";
 import { catchAsync } from "@/utils/catchAsync";
-import { hostname } from "@/utils/configs";
-import { makeDataDumpToJson } from "@/utils/makeDataDump";
 import { filterClients } from "@/utils/wsUtils";
-
 
 export var staticObservations: StaticObservation[] = [];
 var activeDevices: string[] = [];
@@ -22,30 +24,9 @@ var logData: {
 }[] = [];
 var statusData: ObservationStatus[] = [];
 var lastObservationData: LastObservationData = {};
-let observationData: { time: Date; data: Observation[][] }[] = [];
+export let observationData: { time: Date; data: Observation[][] }[] = [];
 
-
-const S3_DATA_DUMP_INTERVAL = 1000 * 60 * 60;
 const DEFAULT_LISTING_LIMIT = 10;
-
-setInterval(() => {
-  makeDataDumpToJson(
-    observationData,
-    `${hostname}/${new Date().getTime()}.json`,
-    {
-      slug: "s3_observations_dump",
-      options: {
-        schedule: {
-          type: "interval",
-          unit: "minutes",
-          value: S3_DATA_DUMP_INTERVAL / (1000 * 60),
-        },
-      },
-    },
-  );
-
-  observationData = [];
-}, S3_DATA_DUMP_INTERVAL);
 
 const getTime = (date: string) =>
   new Date(date.replace(" ", "T").concat("+0530"));
@@ -246,7 +227,7 @@ export class ObservationController {
     updateLastObservationData(flattenedObservations);
     this.latestObservation.set(flattenedObservations);
 
-    filterClients(req.wsInstance.getWss(), "/observations").forEach(
+    filterClients(req.wsInstance.getWss(), "/observations", undefined).forEach(
       (client: WebSocket) => {
         const filteredObservations = flattenedObservations?.filter(
           (observation: Observation) =>
