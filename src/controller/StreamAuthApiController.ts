@@ -58,10 +58,10 @@ export class StreamAuthApiController {
     try {
       const decoded = await verifyJWT(token);
       if (decoded.ip === ip || decoded.stream === stream) {
-        return res.status(200).json({ status: 1 });
+        return res.status(200).json({ status: "1" });
       }
 
-      return res.status(401).json({ status: 0 });
+      return res.status(401).json({ status: "0" });
     } catch (error: any) {
       return res.status(500).json({ message: error.message });
     }

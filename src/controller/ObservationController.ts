@@ -175,35 +175,6 @@ export class ObservationController {
 
   static latestObservation = new ObservationsMap();
 
-  static getObservations(req: Request, res: Response) {
-    const limit = req.query?.limit || DEFAULT_LISTING_LIMIT;
-    const ip = req.query?.ip;
-
-    if (!ip) {
-      return res.json(staticObservations);
-    }
-    // console.log("Filtering");
-    const filtered = staticObservations.filter(
-      (observation) => observation.device_id === ip,
-    );
-    // Sort the observation by last updated time.
-    // .sort(
-    //   (a, b) => new Date(a.lastObservationAt) - new Date(b.lastObservationAt)
-    // )
-    // // Limit the results
-    // .slice(0, limit);
-
-    return res.json(filtered ?? []);
-  }
-
-  static getLogData(req: Request, res: Response) {
-    return res.json(logData);
-  }
-
-  static getLastRequestData(req: Request, res: Response) {
-    return res.json(lastRequestData);
-  }
-
   static updateObservations = (req: Request, res: Response) => {
     // database logic
     lastRequestData = req.body;

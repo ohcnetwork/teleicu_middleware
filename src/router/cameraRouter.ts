@@ -8,8 +8,11 @@ import {
 } from "@/Validators/cameraValidators";
 import { CameraController } from "@/controller/CameraController";
 import { validate } from "@/middleware/validate";
+import { careJwtAuth } from "@/middleware/auth";
 
 const router = express.Router();
+
+router.use(careJwtAuth());
 
 router.get(
   "/presets",
@@ -48,9 +51,5 @@ router.post(
   validate(camMoveValidator),
   CameraController.relativeMove,
 );
-
-// BPL Integration
-
-router.get("/get_time", CameraController.getTime);
 
 export { router as cameraRouter };
