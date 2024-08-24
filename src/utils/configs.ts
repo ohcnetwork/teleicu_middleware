@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import * as dotenv from "dotenv";
 
 dotenv.config();
@@ -8,6 +9,10 @@ export const hostname = process.env.HOSTNAME ?? "localhost";
 export const facilityID =
   process.env.FACILITY_ID ?? "00000000-0000-0000-0000-000000000000";
 export const careApi = process.env.CARE_API ?? "http://localhost:9000";
+
+export const jwtSecret = new TextEncoder().encode(
+  process.env.JWT_SECRET ?? crypto.randomBytes(32).toString("hex"),
+);
 
 export const adminUsername = process.env.USERNAME ?? "admin";
 export const adminPassword = process.env.PASSWORD + facilityID; // good luck brute-forcing this
