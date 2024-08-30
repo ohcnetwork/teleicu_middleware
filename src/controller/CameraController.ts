@@ -355,24 +355,6 @@ export class CameraController {
 
   /**
    * @swagger
-   * /get_time:
-   *   get:
-   *     summary: "Get current time"
-   *     description: ""
-   *     tags:
-   *       - BPL
-   *     responses:
-   *       "200":
-   *         description: Return current time
-   */
-  static getTime = catchAsync(async (req: Request, res: Response) => {
-    res.send({
-      time: new Date().toISOString(),
-    });
-  });
-
-  /**
-   * @swagger
    * /preset:
    *   post:
    *     summary: "Create new camera preset"

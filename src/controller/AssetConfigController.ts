@@ -1,8 +1,8 @@
 import dayjs from "dayjs";
 import { Request, Response } from "express";
 
-import prisma from "@/lib/prisma";
 import { retrieveAssetConfig } from "@/cron/retrieveAssetConfig";
+import prisma from "@/lib/prisma";
 
 export class AssetConfigController {
   static listAssets = async (req: Request, res: Response) => {
@@ -40,7 +40,7 @@ export class AssetConfigController {
   static refreshAssets = async (req: Request, res: Response) => {
     await retrieveAssetConfig();
     res.redirect("/assets");
-  }
+  };
 
   static createAssetForm = async (req: Request, res: Response) => {
     res.render("pages/assets/form", {
