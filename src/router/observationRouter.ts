@@ -5,12 +5,12 @@ import {
   vitalsValidator,
 } from "@/Validators/observationValidators";
 import { ObservationController } from "@/controller/ObservationController";
+import { careJwtAuth } from "@/middleware/auth";
 import { validate } from "@/middleware/validate";
 
 const router = express.Router();
 
-router.get("/get_observations", ObservationController.getObservations);
-
+// blocked on nginx
 router.post(
   "/update_observations",
   validate(observationsValidators),
@@ -19,18 +19,13 @@ router.post(
 
 router.get(
   "/vitals",
+  careJwtAuth(),
   validate(vitalsValidator),
   ObservationController.getLatestVitals,
 );
 
+router.get("/devices/status", careJwtAuth(), ObservationController.status);
+
 router.get("/get_time", ObservationController.getTime);
-
-router.get("/devices/status", ObservationController.status);
-
-// Debugging Endpoints
-
-router.get("/get_log_data", ObservationController.getLogData);
-
-router.get("/get_last_request_data", ObservationController.getLastRequestData);
 
 export { router as observationRouter };

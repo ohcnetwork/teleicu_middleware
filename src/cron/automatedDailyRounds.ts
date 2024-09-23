@@ -274,12 +274,17 @@ export function getVitalsFromObservationsForAccuracy(
     .reduce((acc, curr) => {
       return [...acc, ...curr.data];
     }, [] as Observation[][])
-    .find(
-      (observation) =>
+    .find((observation) => {
+      const observationTime = new Date(observation[0]["date-time"]);
+      observationTime.setMilliseconds(0);
+      const imageTime = new Date(time);
+      imageTime.setMilliseconds(0);
+
+      return (
         observation[0].device_id === deviceId &&
-        new Date(observation[0]["date-time"]).toISOString() ===
-          new Date(time).toISOString(),
-    );
+        observationTime.toISOString() === imageTime.toISOString()
+      );
+    });
 
   if (!observations) {
     return null;
