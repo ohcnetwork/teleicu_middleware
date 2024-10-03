@@ -95,7 +95,7 @@ export async function getCareJWKs() {
   if (!careJWKs) {
     const controller = new AbortController();
     setTimeout(() => controller.abort(), 5000);
-    const res = await fetch(`${careApi}/.well-known/openid-configuration`, {
+    const res = await fetch(`${careApi}/.well-known/jwks.json`, {
       signal: controller.signal,
     }).then((res) => {
       if (!res.ok) {
