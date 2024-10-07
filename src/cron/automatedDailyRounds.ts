@@ -243,7 +243,7 @@ export async function getVitalsFromObservations(assetHostname: string) {
       temperature: number;
       temperature_mesured_at: string;
     } | null) ?? { temperature: null, temperature_measured_at: null }),
-    bp: getValueFromData("blood-pressure", data) ?? {},
+    bp: getValueFromData("blood-pressure", data),
     rounds_type: "AUTOMATED",
     is_parsed_by_ocr: false,
   } as DailyRoundObservation;
