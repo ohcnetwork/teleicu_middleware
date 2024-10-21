@@ -343,7 +343,31 @@ export class CameraController {
 
   static relativeMove = catchAsync(async (req: Request, res: Response) => {
     const camParams = this._getCamParams(req.body);
-    const { x, y, zoom } = req.body;
+    const { x, y, zoom, boundary } = req.body;
+
+    if (boundary) {
+      const status = await CameraUtils.getStatus({ camParams });
+      const { x: currentX, y: currentY } = status.position;
+      const { x0, x1, y0, y1 } = boundary;
+
+      const targetX = currentX + (x ?? 0);
+      const targetY = currentY + (y ?? 0);
+
+      const xMin = Math.min(x0, x1);
+      const xMax = Math.max(x0, x1);
+      const yMin = Math.min(y0, y1);
+      const yMax = Math.max(y0, y1);
+
+      if (
+        !(xMin <= targetX && targetX <= xMax) ||
+        !(yMin <= targetY && targetY <= yMax)
+      ) {
+        return res.status(400).json({
+          status: "error",
+          message: "The requested position is out of the allowed boundary.",
+        });
+      }
+    }
 
     await CameraUtils.relativeMove({ camParams, x, y, zoom });
 

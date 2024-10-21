@@ -66,6 +66,41 @@ export const setPresetValidators = [
     .withMessage("presetName must be 1 to 20 character long."),
 ];
 
+export const boundaryValidator = [
+  body("boundary")
+    .optional()
+    .isObject()
+    .withMessage("boundary must be an object."),
+
+  body("boundary.x0")
+    .if(body("boundary").exists())
+    .exists({ checkNull: true })
+    .withMessage("boundary.x0 is required.")
+    .isFloat()
+    .withMessage("boundary.x0 must be a number."),
+
+  body("boundary.x1")
+    .if(body("boundary").exists())
+    .exists({ checkNull: true })
+    .withMessage("boundary.x1 is required.")
+    .isFloat()
+    .withMessage("boundary.x1 must be a number."),
+
+  body("boundary.y0")
+    .if(body("boundary").exists())
+    .exists({ checkNull: true })
+    .withMessage("boundary.y0 is required.")
+    .isFloat()
+    .withMessage("boundary.y0 must be a number."),
+
+  body("boundary.y1")
+    .if(body("boundary").exists())
+    .exists({ checkNull: true })
+    .withMessage("boundary.y1 is required.")
+    .isFloat()
+    .withMessage("boundary.y1 must be a number."),
+];
+
 export const camMoveValidator = [
   ...baseCameraParamsValidators,
   body("x")
@@ -83,4 +118,5 @@ export const camMoveValidator = [
     .withMessage("zoom is required.")
     .isFloat({ max: 1, min: -1 })
     .withMessage("zoom must be number."),
+  ...boundaryValidator,
 ];
